@@ -61,7 +61,8 @@ public class Service {
     private static double[] keys = new double[100];               //stores the all the keys it has recieved
     private static int key_count = 0;
     
-    static ChatInterface myInterface = null;
+    private static ChatInterface myInterface = null;
+    private static SignalInterface mySignalInterface;
     static String channel_name = null;
     //End of Variable Declarations
     
@@ -119,22 +120,28 @@ public class Service {
 
         @BusSignalHandler(iface = "org.alljoyn.bus.samples.chat", signal = "nickname")
         public void nickname(String usrname, String Alljoyn_unique_nameque) throws BusException {
-            System.out.println("!!!Validation is called!!!");
-            int contain = 0;
+            SignalEmitter emitter = new SignalEmitter(mySignalInterface, Alljoyn_unique_nameque, mSessionId, SignalEmitter.GlobalBroadcast.Off);
+            ChatInterface usrInterface = emitter.getInterface(ChatInterface.class);
+            int do_not_contain = 0;             // 0 is for false and 1 true;
             for (int i = 0; i < 100; i++) {
-                if (nickname[i] != usrname) {
-                    contain = 1;
+                if(nickname[i]==usrname){
+                    do_not_contain = 0;
                     break;
                 }
+                if (nickname[i] == "") {
+                    do_not_contain = 1;
+                    break;
+                }
+                
             }
-            if (contain == 1) {
+            if (do_not_contain == 1) {
                 nickname[name_count] = usrname;
                 Alljoyn_unique_name[name_count] = Alljoyn_unique_nameque;
                 name_count++;
-                myInterface.validate(true);
+                usrInterface.validate(true);
 
             } else {
-                myInterface.validate(false);
+                usrInterface.validate(false);
             }
 
         }
@@ -218,7 +225,7 @@ public class Service {
 
         Status status;
 
-        final SignalInterface mySignalInterface = new SignalInterface();
+        mySignalInterface = new SignalInterface();
 
         status = mBus.registerBusObject(mySignalInterface, "/chatService");
         if (status != Status.OK) {
