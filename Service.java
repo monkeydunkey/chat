@@ -40,7 +40,7 @@ public class Service {
     }
 
     public static void sendMessage(String s) throws BusException {
-        myInterface.Notification(s, nickname[0]);
+        myInterface.Notification(s, nickname[0],key);
     }
 
     // Start of variable Declarations
@@ -52,7 +52,7 @@ public class Service {
     private static final short CONTACT_PORT = 27;
     private static BusAttachment mBus;
     static int mUseSessionId = -1;
-    private static double key = (Math.random() * 100000);         //Generating random secret key for the device
+    private static double key = (Math.random() * 100000)+1;         //Generating random secret key for the device
    
     private static String[] Alljoyn_unique_name = new String[100];//stores the nicknames provided to devices by alljoyn
     static String[] nickname = new String[100];                   //stores the nicknames chosen by the user
@@ -68,7 +68,7 @@ public class Service {
     // The signal interface is used to send data using alljoyn's signals
     public static class SignalInterface implements ChatInterface, BusObject {
         //Signal via which all the notifications are to be sent
-        public void Notification(String s, String nickname) throws BusException {
+        public void Notification(String s, String nickname, double key) throws BusException {
         }
         
         //Signal via which all the nickname of new users are to be sent
@@ -91,8 +91,19 @@ public class Service {
     public static class SignalHandler {
         
         @BusSignalHandler(iface = "org.alljoyn.bus.samples.chat", signal = "Notification")
-        public void Notification(String string, String nick) {
-
+        public void Notification(String string, String nick, double key) {
+            Boolean key_exist=false;
+            for(int i=0;i<100;i++){
+                if(keys[i]==key)
+                {
+                    key_exist=true;break;
+                }
+                else if(keys[i]==-1)
+                {
+                    break;
+                }
+            }
+            if(key_exist||key==0){
             MessageContext ctx = mBus.getMessageContext();
 
             String as = nick + " -> " + string;
@@ -102,6 +113,7 @@ public class Service {
             String nickname = ctx.sender; //returns the alljoyn unique name of the sender;
             nickname = nickname.substring(nickname.length() - 10, nickname.length());
             System.out.println(nickname + ": " + string);
+            }
 
         }
 
@@ -198,6 +210,7 @@ public class Service {
         for (int i = 0; i < 100; i++) {
             Alljoyn_unique_name[i] = "";
             nickname[i] = "";
+            keys[i] = -1;
         }
         
         //mBus is the object which connects to the Alljoyn bus daemon
@@ -303,6 +316,7 @@ public class Service {
         int flags = 0; //do not use any request name flags
         status = mBus.requestName(wellKnownName, flags);
         if (status != Status.OK) {
+            
             return;
         }
         System.out.println("BusAttachment.request 'com.my.well.known.name' successful");
@@ -326,7 +340,7 @@ public class Service {
             while (true) {
 
                 Thread.sleep(50000);
-                myInterface.Notification("service_message", nickname[0]);
+                myInterface.Notification("service_message", nickname[0],0);
             }
         } catch (InterruptedException ex) {
             System.out.println("Interrupted");
