@@ -62,7 +62,7 @@ public class Client implements Runnable {
     private static ProxyBusObject mProxyObj;
     private static GroupInterface mGroupInterface;
     static Methodhandler myGroup = new Methodhandler();
-
+    static Join_Channel j1;
     ///End of variable Declarations
     @Override
     public void run() {
@@ -208,6 +208,10 @@ public class Client implements Runnable {
 
         channel_joined = 2;
     }
+    
+    public static void update_channel(){
+       j1.update_list(channels);
+    }
 
     /**
      * This method run the code for the client side The process is a as follow:-
@@ -308,10 +312,10 @@ public class Client implements Runnable {
                 System.out.println("Program interupted");
             }
         }
-
+        j1=new Join_Channel(channels);
         java.awt.EventQueue.invokeLater(new Runnable() {
             public void run() {
-                new Join_Channel(channels).setVisible(true);
+                j1.setVisible(true);
             }
         });
         joinChannel();

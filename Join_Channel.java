@@ -17,6 +17,7 @@ public class Join_Channel extends javax.swing.JFrame {
     /**
      * Creates new form Join_Channel
      */
+    
     public Join_Channel(final String[] s) {
         initComponents();
         getContentPane().setBackground(Color.getHSBColor(0, 153, 102));
@@ -31,6 +32,17 @@ public class Join_Channel extends javax.swing.JFrame {
         }
         jList1.setModel(d1);
     }
+    
+    public void update_list(final String[] s) {
+        DefaultListModel d1=new DefaultListModel();
+        for(int i=0;i<5;i++){
+            if(s[i]!=""){
+               d1.addElement(s[i]);
+           }
+           else{break;}
+        }
+        jList1.setModel(d1);
+    }  
 
     /**
      * This method is called from within the constructor to initialize the form.
@@ -71,6 +83,11 @@ public class Join_Channel extends javax.swing.JFrame {
         jButton3.setIcon(new javax.swing.ImageIcon(getClass().getResource("/org/alljoyn/bus/sample/chat/image.png"))); // NOI18N
         jButton3.setDisabledIcon(new javax.swing.ImageIcon(getClass().getResource("/org/alljoyn/bus/sample/chat/image.png"))); // NOI18N
         jButton3.setIconTextGap(0);
+        jButton3.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                jButton3ActionPerformed(evt);
+            }
+        });
 
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(getContentPane());
         getContentPane().setLayout(layout);
@@ -108,6 +125,10 @@ public class Join_Channel extends javax.swing.JFrame {
         Client.getChannelName(jList1.getSelectedIndex());
         this.dispose();
     }//GEN-LAST:event_jButton1ActionPerformed
+
+    private void jButton3ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton3ActionPerformed
+        Client.update_channel();
+    }//GEN-LAST:event_jButton3ActionPerformed
 
     /**
      * @param args the command line arguments
