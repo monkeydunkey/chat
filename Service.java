@@ -379,6 +379,7 @@ public class Service {
             System.out.println("Interrupted");
         }
         System.out.println("Service exiting");
+        App.on_close();
     }
 
     public static void main(String[] args) throws BusException {

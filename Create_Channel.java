@@ -6,6 +6,8 @@
 package org.alljoyn.bus.sample.chat;
 
 import java.awt.Color;
+import java.awt.Component;
+import javax.swing.JOptionPane;
 
 /**
  *
@@ -21,10 +23,23 @@ public class Create_Channel extends javax.swing.JFrame {
      */
     public Create_Channel(String[] cha) {
         initComponents();
-        channels=cha;
+        channels = cha;
         getContentPane().setBackground(Color.getHSBColor(0, 153, 102));
         setTitle("Create Channel");
         jLabel3.setVisible(false);
+        final Component frame=this;
+        this.addWindowListener(new java.awt.event.WindowAdapter() {
+            @Override
+            public void windowClosing(java.awt.event.WindowEvent windowEvent) {
+                /*if (JOptionPane.showConfirmDialog(frame,
+                        "Are you sure to close this window?", "Really Closing?",
+                        JOptionPane.YES_NO_OPTION,
+                        JOptionPane.QUESTION_MESSAGE) == JOptionPane.YES_OPTION) {
+                    System.exit(0);
+                }*/
+                Service.set_running(false);
+            }
+        });
     }
 
     /**
@@ -120,7 +135,7 @@ public class Create_Channel extends javax.swing.JFrame {
             }
         }
 
-        
+
     }//GEN-LAST:event_jButton1ActionPerformed
 
     /**

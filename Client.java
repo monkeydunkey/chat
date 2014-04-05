@@ -358,6 +358,7 @@ public class Client implements Runnable {
             Thread.sleep(5000);
         }
         System.out.println("Client exiting");
+        App.on_close();
     }
 
     public static void main(String[] args) throws BusException, InterruptedException {

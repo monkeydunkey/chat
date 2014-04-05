@@ -1,5 +1,4 @@
 Changes/Addition needed to be done
- Implement the leave/stop channel
  ask key GUI implementation
  Missed call handling
- 
+ Do we give the user a option of not setting his user name

@@ -6,6 +6,8 @@
 package org.alljoyn.bus.sample.chat;
 
 import java.awt.Color;
+import java.awt.Component;
+import javax.swing.JOptionPane;
 
 /**
  *
@@ -22,8 +24,26 @@ public class GUI_SmartJoyn extends javax.swing.JFrame {
         
         getContentPane().setBackground(Color.getHSBColor(0, 153, 102));
         setTitle("SMART JOYN");
+        jButton4.setEnabled(false);
+        final Component frame=this;
+       this.addWindowListener(new java.awt.event.WindowAdapter() {
+            @Override
+            public void windowClosing(java.awt.event.WindowEvent windowEvent) {
+                if (JOptionPane.showConfirmDialog(frame,
+                        "Are you sure you want to exit?", "Really Closing?",
+                        JOptionPane.YES_NO_OPTION,
+                        JOptionPane.QUESTION_MESSAGE) == JOptionPane.YES_OPTION) {
+                    System.exit(0);
+                }
+            }
+        });
     }
 
+    public void original_state(){
+        jButton1.setEnabled(true);
+        jButton2.setEnabled(true);
+        jButton4.setEnabled(false);
+    }
     /**
      * This method is called from within the constructor to initialize the form.
      * WARNING: Do NOT modify this code. The content of this method is always
@@ -122,6 +142,7 @@ public class GUI_SmartJoyn extends javax.swing.JFrame {
         // TODO add your handling code here:
         App.type(2);
         jButton1.setEnabled(false);
+        jButton4.setEnabled(true);
         /* Create and display the form */
         
     }//GEN-LAST:event_jButton2ActionPerformed
@@ -134,6 +155,7 @@ public class GUI_SmartJoyn extends javax.swing.JFrame {
        
        App.type(1);
        jButton2.setEnabled(false);
+       jButton4.setEnabled(true);
     }//GEN-LAST:event_jButton1ActionPerformed
 
     /**

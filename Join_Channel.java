@@ -6,6 +6,7 @@
 package org.alljoyn.bus.sample.chat;
 
 import java.awt.Color;
+import java.awt.Component;
 import javax.swing.DefaultListModel;
 
 /**
@@ -31,6 +32,20 @@ public class Join_Channel extends javax.swing.JFrame {
            else{break;}
         }
         jList1.setModel(d1);
+        
+        final Component frame=this;
+        this.addWindowListener(new java.awt.event.WindowAdapter() {
+            @Override
+            public void windowClosing(java.awt.event.WindowEvent windowEvent) {
+                /*if (JOptionPane.showConfirmDialog(frame,
+                        "Are you sure to close this window?", "Really Closing?",
+                        JOptionPane.YES_NO_OPTION,
+                        JOptionPane.QUESTION_MESSAGE) == JOptionPane.YES_OPTION) {
+                    System.exit(0);
+                }*/
+                Client.set_running(false);
+            }
+        });
     }
     
     public void update_list(final String[] s) {

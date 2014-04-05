@@ -17,15 +17,21 @@ public class App {
 
     static int ser_cli = 0;
     static int service_or_client=0; //1 is for server 2 for client 
+    static GUI_SmartJoyn gui;
     public static void type(int typ) {
         ser_cli = typ;
     }
 
+    public static void on_close(){
+        service_or_client=0;
+        gui.original_state();
+    }
     public static void main(String[] args) throws BusException, InterruptedException {
-
+        
         java.awt.EventQueue.invokeLater(new Runnable() {
             public void run() {
-                new GUI_SmartJoyn().setVisible(true);
+               gui= new GUI_SmartJoyn();
+               gui.setVisible(true);
             }
         });
         Thread t;
