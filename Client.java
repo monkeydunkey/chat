@@ -26,7 +26,7 @@ public class Client implements Runnable {
     }
 
     //Used for replying to the call notifications
-    public static void sendMessage(String s,String uni) throws BusException {
+    public static void sendMessage(String s, String uni) throws BusException {
         SignalEmitter emitter = new SignalEmitter(mySignalInterface, uni, mUseSessionId, SignalEmitter.GlobalBroadcast.Off);
         ChatInterface usrInterface = emitter.getInterface(ChatInterface.class);
         usrInterface.Notification(s, nickname, 0);
@@ -51,6 +51,7 @@ public class Client implements Runnable {
     private static int key_count = 0;
     private static String nickname;                //Device nickname that the user has chosen
     private static String alljoynnick;              //Device nickanem that Alljoyn provides
+    private static Boolean running;
 
     //We can change to a single variable wait for android implementation to be complete
     private static boolean validate = false;
@@ -63,6 +64,7 @@ public class Client implements Runnable {
     private static GroupInterface mGroupInterface;
     static Methodhandler myGroup = new Methodhandler();
     static Join_Channel j1;
+
     ///End of variable Declarations
     @Override
     public void run() {
@@ -112,15 +114,14 @@ public class Client implements Runnable {
                         break;
                     }
                 }
-                if (key_exist || key1 == 0||key==key1) {
+                if (key_exist || key1 == 0 || key == key1) {
                     final String f = string;
                     MessageContext ctx = mBus.getMessageContext();
                     String nickname = ctx.sender;
                     String as = nick + " -> " + string;
-                    new messageThread(as,nickname).start();
+                    new messageThread(as, nickname).start();
 
                     //For Debugging purpose
-                    
                     nickname = nickname.substring(nickname.length() - 10, nickname.length());
                     System.out.println(nickname + ": " + string);
                 }
@@ -208,9 +209,13 @@ public class Client implements Runnable {
 
         channel_joined = 2;
     }
-    
-    public static void update_channel(){
-       j1.update_list(channels);
+
+    public static void update_channel() {
+        j1.update_list(channels);
+    }
+
+    public static void set_running(Boolean run) {
+        running = run;
     }
 
     /**
@@ -240,7 +245,8 @@ public class Client implements Runnable {
      * "bomb" is sent back to device which sent the notification.
      *
      */
-    public static void run_client() throws BusException, InterruptedException {
+    public static void run_client(Boolean run) throws BusException, InterruptedException {
+        running = run;
         channels = new String[100];
         for (int i = 0; i < 100; i++) {
             channels[i] = "";
@@ -304,15 +310,14 @@ public class Client implements Runnable {
             return;
         }
         System.out.println("Method handler Registered");
-
-        while (channel_detected != 1) {
-            try {
-                Thread.sleep(1000);
-            } catch (InterruptedException e) {
-                System.out.println("Program interupted");
-            }
+        
+        try {
+            Thread.sleep(1000);
+        } catch (InterruptedException e) {
+            System.out.println("Program interupted");
         }
-        j1=new Join_Channel(channels);
+        
+        j1 = new Join_Channel(channels);
         java.awt.EventQueue.invokeLater(new Runnable() {
             public void run() {
                 j1.setVisible(true);
@@ -322,7 +327,7 @@ public class Client implements Runnable {
         if (channel_selected == -2) {
             return;
         }
-        while (channel_joined != 2) {
+        while (channel_joined != 2 && running) {
             try {
                 Thread.sleep(1000);
             } catch (InterruptedException e) {
@@ -333,7 +338,7 @@ public class Client implements Runnable {
         // Channels Joined
         alljoynnick = mBus.getUniqueName();
         Scanner scanner = new Scanner(System.in);
-        while (!validate) {
+        while (!validate && running) {
             System.out.println("Please enter a nick name");
             nickname = scanner.nextLine();
 
@@ -349,9 +354,10 @@ public class Client implements Runnable {
             System.out.println(uni_names[i] + " - " + nick[i]);
         }
         //This is for the client to run infinetly 
-        while (true) {
+        while (true & running) {
             Thread.sleep(5000);
         }
+        System.out.println("Client exiting");
     }
 
     public static void main(String[] args) throws BusException, InterruptedException {
@@ -364,15 +370,16 @@ class messageThread extends Thread {
 
     final String f;
     final String all_uni;
-    public messageThread(String s,String uni) {
+
+    public messageThread(String s, String uni) {
         f = s;
-        all_uni=uni;
+        all_uni = uni;
     }
 
     public void run() {
         java.awt.EventQueue.invokeLater(new Runnable() {
             public void run() {
-                new ChatFrame(f,all_uni).setVisible(true);
+                new ChatFrame(f, all_uni).setVisible(true);
             }
         });
     }

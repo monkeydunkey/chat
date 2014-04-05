@@ -65,7 +65,8 @@ public class Service {
     private static String[] channels;               //Array for storing all the visible Alljoyn Channel
     private static int channel_count = 0;
     private static Boolean channel_name_checked = false;
-
+    private static Boolean running;
+    
     private static ChatInterface myInterface = null;
     private static SignalInterface mySignalInterface;
     static String channel_name = null;
@@ -214,6 +215,9 @@ public class Service {
         channel_name = text;
     }
 
+    public static void set_running(Boolean run){
+        running = run;
+    }
     /**
      * Static method which runs the Service or Channel Creator The initial flow
      * is same a client, so please refer to the long comment in the client code.
@@ -223,8 +227,16 @@ public class Service {
      * request is successful i.e. channel name does not exist, the name is
      * granted. Now the server waits for a device to be connected.
      */
-    public static void run_service() throws BusException {
+    public static void run_service(Boolean run) throws BusException {
+        running=run;
+        channel_count=0;
+        key_count=0;
+        name_count=0;
+        channel_name_checked=false;
+        mySignalInterface=null;
+        myInterface=null;
         channels = new String[100];
+      
         //Initializing all the nicknames
         for (int i = 0; i < 100; i++) {
             Alljoyn_unique_name[i] = "";
@@ -324,7 +336,7 @@ public class Service {
                 new Create_Channel(channels).setVisible(true);
             }
         });
-        while (channel_name == null) {
+        while (channel_name == null&&running) {
             try {
                 Thread.sleep(100);
             } catch (Exception e) {
@@ -337,7 +349,7 @@ public class Service {
         String wellKnownName = NAME_PREFIX + "." + channel_name;
         int flags = 0; //do not use any request name flags
         status = mBus.requestName(wellKnownName, flags);
-        while (status != Status.OK) {
+        if (status != Status.OK) {
             return;
         }
         System.out.println("BusAttachment.request 'com.my.well.known.name' successful");
@@ -351,14 +363,14 @@ public class Service {
         System.out.println("BusAttachment.advertiseName 'com.my.well.known.name' successful");
 
         try {
-            while (!mSessionEstablished) {
+            while (!mSessionEstablished&&running) {
                 Thread.sleep(10);
 
             }
             System.out.println("Server running");
 
             //This is for the client to run infinetly
-            while (true) {
+            while (true&&running) {
 
                 Thread.sleep(20000);
                 myInterface.Notification("service_message", nickname[0], 0);
@@ -366,6 +378,7 @@ public class Service {
         } catch (InterruptedException ex) {
             System.out.println("Interrupted");
         }
+        System.out.println("Service exiting");
     }
 
     public static void main(String[] args) throws BusException {

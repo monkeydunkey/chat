@@ -113,12 +113,15 @@ public class GUI_SmartJoyn extends javax.swing.JFrame {
     }// &lt;/editor-fold&gt;//GEN-END:initComponents
 
     private void jButton4ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton4ActionPerformed
-        // TODO add your handling code here:
+        App.type(3);
+        jButton1.setEnabled(true);
+        jButton2.setEnabled(true);
     }//GEN-LAST:event_jButton4ActionPerformed
 
     private void jButton2ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton2ActionPerformed
         // TODO add your handling code here:
         App.type(2);
+        jButton1.setEnabled(false);
         /* Create and display the form */
         
     }//GEN-LAST:event_jButton2ActionPerformed
@@ -130,6 +133,7 @@ public class GUI_SmartJoyn extends javax.swing.JFrame {
     private void jButton1ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton1ActionPerformed
        
        App.type(1);
+       jButton2.setEnabled(false);
     }//GEN-LAST:event_jButton1ActionPerformed
 
     /**
