@@ -1,9 +1,18 @@
+/*
+ * To change this license header, choose License Headers in Project Properties.
+ * To change this template file, choose Tools | Templates
+ * and open the template in the editor.
+ */
 package org.alljoyn.bus.sample.chat;
 
 /**
  *
- * @author Shashank
+ * @author admin
  */
+import static com.sun.org.apache.xalan.internal.xsltc.compiler.util.Type.Int;
+import javax.swing.JLabel;
+import javax.swing.WindowConstants;
+
 import org.alljoyn.bus.BusAttachment;
 import org.alljoyn.bus.BusException;
 import org.alljoyn.bus.BusListener;
@@ -15,8 +24,11 @@ import org.alljoyn.bus.Status;
 import org.alljoyn.bus.annotation.BusSignalHandler;
 import org.alljoyn.bus.MessageContext;
 import org.alljoyn.bus.SignalEmitter;
+import java.lang.Runnable;
 
 import java.util.Scanner;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import org.alljoyn.bus.ProxyBusObject;
 
 public class Client implements Runnable {
@@ -25,105 +37,87 @@ public class Client implements Runnable {
         System.loadLibrary("alljoyn_java");
     }
 
-    //Used for replying to the call notifications
-    public static void sendMessage(String s,String uni) throws BusException {
-        SignalEmitter emitter = new SignalEmitter(mySignalInterface, uni, mUseSessionId, SignalEmitter.GlobalBroadcast.Off);
-        ChatInterface usrInterface = emitter.getInterface(ChatInterface.class);
-        usrInterface.Notification(s, nickname, 0);
+    public static void sendMessage(String s) throws BusException {
+        myInterface.Chat(s, nickname);
     }
 
-    ///Start of variable declarations
-    //////Variables realted to alljoyn connection establishment
     private static final short CONTACT_PORT = 27;
-    private static double key = (Math.random() * 100000) + 1; //Generating random secret key for the device
+    private static double key = (Math.random() * 100000);
     static BusAttachment mBus;
+    static int flag = -1;
+    static int flag2 = 0;
+    static int mHostSessionId = -1;
     static int mUseSessionId = -1;
+    static String s = "hello";
     private static final String NAME_PREFIX = "org.alljoyn.bus.samples.chat";
-    //////Variables realted to alljoyn connection establishment
 
-    static int channel_joined = -1;
-    static int channel_detected = -1;
-
-    private static String[] channels;               //Array for storing all the visible Alljoyn Channel
+    private static String[] channels;
     private static int channel_count = 0;
     private static int channel_selected = -1;
-    private static double[] keys = new double[100]; //Array for storing all the keys that the device received
+    private static double[] keys = new double[100];
     private static int key_count = 0;
-    private static String nickname;                //Device nickname that the user has chosen
-    private static String alljoynnick;              //Device nickanem that Alljoyn provides
-
-    //We can change to a single variable wait for android implementation to be complete
+    private static String nickname = "saurabh";
+    private static String alljoynnick;
     private static boolean validate = false;
     private static boolean validate_copy = false;
-    //         
-    ///Variables for the various interfaces used for data transfer 
     static ChatInterface myInterface = null;
-    static SignalInterface mySignalInterface;
+    static SampleSignalHandler mySignalInterface;
     private static ProxyBusObject mProxyObj;
     private static GroupInterface mGroupInterface;
-    static Methodhandler myGroup = new Methodhandler();
+    static groupSignalHandler myGroup = new groupSignalHandler();
 
-    ///End of variable Declarations
     @Override
     public void run() {
         throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
     }
 
-    // The signal interface is used to send data using alljoyn's signals
-    public static class SignalInterface implements ChatInterface, BusObject {
+    public static class SampleSignalHandler implements ChatInterface, BusObject {
 
-        //Signal via which all the notifications are to be sent
-        public void Notification(String s, String nickname, double key) throws BusException {
+        public void Chat(String s, String nickname) throws BusException {
 
         }
 
-        //Signal via which all the nickname of new users are to be sent
         @Override
         public void nickname(String usrname, String all_unique) throws BusException {
 
         }
 
-        //Signal via which the Service/Channel creator validates a new users nickname
         @Override
         public void validate(boolean val) throws BusException {
 
         }
 
-        //Signal via which users can send their private keys to other devices, thus enabling them to receive their notifications
         @Override
         public void sendKey(Double a) throws BusException {
 
         }
     }
 
-    //The signal handler reads the signals sent to the device by other devices
-    public static class Signalhandler {
+    public static class SignalInterface {
 
-        @BusSignalHandler(iface = "org.alljoyn.bus.samples.chat", signal = "Notification")
-        public void Notification(String string, String nick, double key1) {
+        @BusSignalHandler(iface = "org.alljoyn.bus.samples.chat", signal = "Chat")
+        public void Chat(String string, String nick) {
 
+            /*
+             * See the long comment in doJoinSession() for more explanation of
+             * why this is needed.
+             * 
+             * The only time we allow a signal from the hosted session ID to pass
+             * through is if we are in mJoinedToSelf state.  If the source of the
+             * signal is us, we also filter out the signal since we are going to
+             * locally echo the signal.
+
+             */
             if (validate_copy) {
-                Boolean key_exist = false;
-                for (int i = 0; i < 100; i++) {
-                    if (keys[i] == key1) {
-                        key_exist = true;
-                        break;
-                    } else if (keys[i] == -1) {
-                        break;
-                    }
-                }
-                if (key_exist || key1 == 0||key==key1) {
-                    final String f = string;
-                    MessageContext ctx = mBus.getMessageContext();
-                    String nickname = ctx.sender;
-                    String as = nick + " -> " + string;
-                    new messageThread(as,nickname).start();
+                final String f = string;
+                String uniqueName = mBus.getUniqueName();
+                MessageContext ctx = mBus.getMessageContext();
 
-                    //For Debugging purpose
-                    
-                    nickname = nickname.substring(nickname.length() - 10, nickname.length());
-                    System.out.println(nickname + ": " + string);
-                }
+                String nickname = ctx.sender;
+                nickname = nickname.substring(nickname.length() - 10, nickname.length());
+                System.out.println(nickname + ": " + string);
+                String as = nick + " -> " + string;
+                new messageThread(as).start();
             }
 
         }
@@ -144,10 +138,8 @@ public class Client implements Runnable {
         }
     }
 
-    //The MethodHandler provides implemention for the GroupInterface which contains declarations for alljoyn methods
-    public static class Methodhandler implements GroupInterface, BusObject {
+    public static class groupSignalHandler implements GroupInterface, BusObject {
 
-        // Here only askKey is implemented as Client does not have the member list
         public synchronized double askKey() {
             return key;
         }
@@ -162,8 +154,6 @@ public class Client implements Runnable {
 
     }
 
-    //The joinChannel GUI calls this method to specify which of the available channels the user selected
-    ///////There should be changes here if the GUI validates the usrs input first before passing it on to the back end
     public static void getChannelName(int i) {
         channel_selected = i;
         System.out.println("the channel id is: " + i);
@@ -172,8 +162,6 @@ public class Client implements Runnable {
         }
     }
 
-    //This method joins the channel selected by the user
-    ///////There should be changes here if the GUI validates the usrs input first before passing it on to the back end
     public static void joinChannel() {
         SessionOpts sessionOpts = new SessionOpts(SessionOpts.TRAFFIC_MESSAGES, true, SessionOpts.PROXIMITY_ANY, SessionOpts.TRANSPORT_ANY);
 
@@ -184,7 +172,7 @@ public class Client implements Runnable {
         short contactPort = CONTACT_PORT;
         while (channel_selected == -1) {
             try {
-                Thread.sleep(100);
+                Thread.sleep(500);
             } catch (InterruptedException e) {
                 System.out.println("Program interupted");
             }
@@ -192,9 +180,9 @@ public class Client implements Runnable {
         if (channel_selected == -2) {
             return;
         }
-
+        
         String name = channels[channel_selected];
-        Status status = mBus.joinSession(NAME_PREFIX + "." + name, contactPort, sessionId, sessionOpts, new SessionListener());
+        Status status = mBus.joinSession(NAME_PREFIX+"."+name, contactPort, sessionId, sessionOpts, new SessionListener());
         if (status != Status.OK) {
             return;
         }
@@ -203,58 +191,26 @@ public class Client implements Runnable {
         SignalEmitter emitter = new SignalEmitter(mySignalInterface, sessionId.value, SignalEmitter.GlobalBroadcast.Off);
 
         myInterface = emitter.getInterface(ChatInterface.class);
-        mProxyObj = mBus.getProxyBusObject(NAME_PREFIX + "." + name, "/chatService", sessionId.value, new Class<?>[]{GroupInterface.class});
+        mProxyObj = mBus.getProxyBusObject(NAME_PREFIX+"."+name, "/chatService", sessionId.value, new Class<?>[]{GroupInterface.class});
         mGroupInterface = mProxyObj.getInterface(GroupInterface.class);
 
-        channel_joined = 2;
+        flag = 2;
     }
 
-    /**
-     * This method run the code for the client side The process is a as follow:-
-     * Initially a Alljoyn busattachment object is initialized this object
-     * connects to the Alljoyn bus daemon(it handles the data transfers). Next a
-     * buslistener object is initialized, this object listens for data on the
-     * channel and call appropriate callback functions when there is any change
-     * on the channel. Now all the interface/handlers created are registered
-     * with the busattachment. The Signal/method interface and method handler
-     * are registered using RegisterBusObject and Signal handler using the
-     * RegisterSignalHandler method. Now channel Discovery is initiated so for
-     * all the available channels buslistener object's foundAdvertisedname is
-     * called. All the found channels are stored in channels array. This array
-     * is passed onto the Join channel GUI. The GUI returns the index of the
-     * selected channel. Once a channel is found joinChannel method is called,
-     * this method blocks till the user has selected a channel After the user
-     * has joined a channel he/she is asked for a nickname. This nickname is
-     * validated from the channel creator using the nickname and validate
-     * methods in the interface. When the user sends a nick to server it checks
-     * whether or not the nick is used correspondingly it sends a true or false
-     * using the validate method.
-     *
-     * After all this when call notification is send to the Desktop Notification
-     * method on the SignalHandler is called which sends the string to the gui
-     * for displaying the notification. When Reject call is pressed a string
-     * "bomb" is sent back to device which sent the notification.
-     *
-     */
     public static void run_client() throws BusException, InterruptedException {
         channels = new String[100];
-        for (int i = 0; i < 100; i++) {
-            channels[i] = "";
-            keys[i] = -1;
-        }
-        channel_count = 0;
-        channel_selected = -1;
-        myInterface = null;
-        mGroupInterface = null;
-
+        channel_count=0;
+        channel_selected=-1;
+        myInterface=null;
+        mGroupInterface=null;
+        mySignalInterface = new SampleSignalHandler();
         class MyBusListener extends BusListener {
 
-            //This method is called whenever the listener discovers a new channel on the network
             public void foundAdvertisedName(String name, short transport, String namePrefix) {
                 System.out.println(String.format("BusListener.foundAdvertisedName(%s, %d, %s)", name, transport, namePrefix));
                 channels[channel_count] = name.substring(29);
                 channel_count++;
-                channel_detected = 1;
+                flag2 = 1;
             }
 
             public void nameOwnerChanged(String busName, String previousOwner, String newOwner) {
@@ -276,7 +232,9 @@ public class Client implements Runnable {
         }
         System.out.println("BusAttachment.connect successful");
 
-        mySignalInterface = new SignalInterface();
+        //change made here
+        //status = mBus.addMatch("type='signal'");
+        //
         status = mBus.registerBusObject(mySignalInterface, "/chatService");
         status = mBus.findAdvertisedName(NAME_PREFIX);
         if (status != Status.OK) {
@@ -284,7 +242,7 @@ public class Client implements Runnable {
         }
 
         System.out.println("BusAttachment.findAdvertisedName successful " + "com.my.well.known.name");
-        Signalhandler mySignalHandlers = new Signalhandler();
+        SignalInterface mySignalHandlers = new SignalInterface();
 
         status = mBus.registerSignalHandlers(mySignalHandlers);
         if (status != Status.OK) {
@@ -293,7 +251,7 @@ public class Client implements Runnable {
 
         System.out.println("BusAttachment.registerSignalHandlers successful");
 
-        Methodhandler mySampleService = new Methodhandler();
+        groupSignalHandler mySampleService = new groupSignalHandler();
 
         status = mBus.registerBusObject(mySampleService, "/chatService");
         if (status != Status.OK) {
@@ -301,7 +259,7 @@ public class Client implements Runnable {
         }
         System.out.println("Method handler Registered");
 
-        while (channel_detected != 1) {
+        while (flag2 != 1) {
             try {
                 Thread.sleep(1000);
             } catch (InterruptedException e) {
@@ -318,7 +276,7 @@ public class Client implements Runnable {
         if (channel_selected == -2) {
             return;
         }
-        while (channel_joined != 2) {
+        while (flag != 2) {
             try {
                 Thread.sleep(1000);
             } catch (InterruptedException e) {
@@ -332,7 +290,7 @@ public class Client implements Runnable {
         while (!validate) {
             System.out.println("Please enter a nick name");
             nickname = scanner.nextLine();
-
+            
             myInterface.nickname(nickname, alljoynnick);
             Thread.sleep(1000);
         }
@@ -344,8 +302,8 @@ public class Client implements Runnable {
         for (int i = 0; i < 10; i++) {
             System.out.println(uni_names[i] + " - " + nick[i]);
         }
-        //This is for the client to run infinetly 
         while (true) {
+            //myInterface.Chat(s,nickname);
             Thread.sleep(5000);
         }
     }
@@ -355,20 +313,18 @@ public class Client implements Runnable {
     }
 }
 
-//This class creates a new thread on which a new jFrame is created for displaying the incoming notification
 class messageThread extends Thread {
 
     final String f;
-    final String all_uni;
-    public messageThread(String s,String uni) {
+
+    public messageThread(String s) {
         f = s;
-        all_uni=uni;
     }
 
     public void run() {
         java.awt.EventQueue.invokeLater(new Runnable() {
             public void run() {
-                new ChatFrame(f,all_uni).setVisible(true);
+                new ChatFrame(f).setVisible(true);
             }
         });
     }

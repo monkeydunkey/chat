@@ -13,10 +13,6 @@
  *    ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF
  *    OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
-
-/*
-Author Shashank
-*/
 package org.alljoyn.bus.sample.chat;
 
 import java.util.Scanner;
@@ -39,112 +35,90 @@ public class Service {
         System.loadLibrary("alljoyn_java");
     }
 
-    public static void sendMessage(String s,String uni) throws BusException {
-        SignalEmitter emitter = new SignalEmitter(mySignalInterface, uni, mSessionId, SignalEmitter.GlobalBroadcast.Off);
-        ChatInterface usrInterface = emitter.getInterface(ChatInterface.class);
-        usrInterface.Notification(s, nickname[0],0);
+    public static void sendMessage(String s) throws BusException {
+        myInterface.Chat(s, nickname[0]);
     }
 
     // Start of variable Declarations
-        //Variables related to alljoyn session establishemnt
-    static boolean mSessionEstablished = false;
-    static int mSessionId;
-    static String mJoinerName;
     private static final String NAME_PREFIX = "org.alljoyn.bus.samples.chat";
     private static final short CONTACT_PORT = 27;
     private static BusAttachment mBus;
     static int mUseSessionId = -1;
-    private static double key = (Math.random() * 100000)+1;         //Generating random secret key for the device
-   
-    private static String[] Alljoyn_unique_name = new String[100];//stores the nicknames provided to devices by alljoyn
-    static String[] nickname = new String[100];                   //stores the nicknames chosen by the user
+    private static double key = (Math.random() * 100000);
+    private static String[] all_uni = new String[100];
     private static int name_count = 0;
-    
-    private static double[] keys = new double[100];               //stores the all the keys it has recieved
+    static String[] nickname = new String[100];
+    private static double[] keys = new double[100];
     private static int key_count = 0;
-    
-    private static ChatInterface myInterface = null;
-    private static SignalInterface mySignalInterface;
-    static String channel_name = null;
+    static boolean mSessionEstablished = false;
+    static int mSessionId;
+    static String mJoinerName;
+    static ChatInterface myInterface = null;
+    static String s = null;
+
     //End of Variable Declarations
-    
-    // The signal interface is used to send data using alljoyn's signals
     public static class SignalInterface implements ChatInterface, BusObject {
-        //Signal via which all the notifications are to be sent
-        public void Notification(String s, String nickname, double key) throws BusException {
+
+        public void Chat(String s, String nickname) throws BusException {
         }
-        
-        //Signal via which all the nickname of new users are to be sent
+
         @Override
-        public void nickname(String usrname, String Alljoyn_unique_nameque) throws BusException {
+        public void nickname(String usrname, String all_unique) throws BusException {
         }
-        
-        //Signal via which the Service/Channel creator validates a new users nickname
+
         @Override
         public void validate(boolean val) throws BusException {
         }
-        
-        //Signal via which users can send their private keys to other devices, thus enabling them to receive their notifications
+
         @Override
         public void sendKey(Double a) throws BusException {
         }
     }
 
-    //The signal handler reads the signals sent to the device by other devices
     public static class SignalHandler {
-        
-        @BusSignalHandler(iface = "org.alljoyn.bus.samples.chat", signal = "Notification")
-        public void Notification(String string, String nick, double key1) {
-            Boolean key_exist=false;
-            for(int i=0;i<100;i++){
-                if(keys[i]==key1)
-                {
-                    key_exist=true;break;
-                }
-                else if(keys[i]==-1)
-                {
-                    break;
-                }
-            }
-            if(key_exist||key1==0||key==key1){
+
+        @BusSignalHandler(iface = "org.alljoyn.bus.samples.chat", signal = "Chat")
+        public void Chat(String string, String nick) {
+
+            String uniqueName = mBus.getUniqueName();
             MessageContext ctx = mBus.getMessageContext();
-            String nickname = ctx.sender; //returns the alljoyn unique name of the sender;
-            String as = nick + " -> " + string;
-            new messageTh(as,nickname).start();
-            
-            // for debugging purpose
-            
-            nickname = nickname.substring(nickname.length() - 10, nickname.length());
-            System.out.println(nickname + ": " + string);
+
+            if (ctx.sender.equals(uniqueName)) {
+                System.out.println("Chat(): dropped our own signal received on session " + ctx.sessionId);
+                return;
             }
+
+            /*
+             * To keep the application simple, we didn't force users to choose a
+             * nickname.  We want to identify the message source somehow, so we
+             * just use the unique name of the sender's bus attachment.
+             */
+            String nickname = ctx.sender;
+            nickname = nickname.substring(nickname.length() - 10, nickname.length());
+            String as = nick + " -> " + string;
+            System.out.println(nickname + ": " + as);
+            new messageTh(as).start();
 
         }
 
         @BusSignalHandler(iface = "org.alljoyn.bus.samples.chat", signal = "nickname")
-        public void nickname(String usrname, String Alljoyn_unique_nameque) throws BusException {
-            System.out.println("!!!Validation Called!!!");
-            SignalEmitter emitter = new SignalEmitter(mySignalInterface, Alljoyn_unique_nameque, mSessionId, SignalEmitter.GlobalBroadcast.Off);
-            ChatInterface usrInterface = emitter.getInterface(ChatInterface.class);
-            int do_not_contain = 0;             // 0 is for false and 1 true;
+        public void nickname(String usrname, String all_unique) throws BusException {
+            System.out.println("!!!Validation is called!!!");
+            int contain = 0;
             for (int i = 0; i < 100; i++) {
-                if(nickname[i].equals(usrname)){
-                    do_not_contain = 0;
+                if (nickname[i] != usrname) {
+                    contain = 1;
                     break;
                 }
-                if (nickname[i].equals("")) {
-                    do_not_contain = 1;
-                    break;
-                }
-                
             }
-            if (do_not_contain == 1) {
+            if (contain == 1) {
                 nickname[name_count] = usrname;
-                Alljoyn_unique_name[name_count] = Alljoyn_unique_nameque;
+                all_uni[name_count] = all_unique;
                 name_count++;
-                usrInterface.validate(true);
+                myInterface.validate(true);
 
             } else {
-                usrInterface.validate(false);
+                myInterface.validate(false);
             }
 
         }
@@ -160,36 +134,31 @@ public class Service {
         }
     }
 
-    //The MethodHandler provides implemention for the GroupInterface which contains declarations for alljoyn methods
-    public static class MethodHandler implements GroupInterface, BusObject {
+    public static class groupSignalHandler implements GroupInterface, BusObject {
 
         public void preDispatch() {
         }
 
         public void postDispatch() {
         }
-        
-        //Method via which a device can ask from other device for its key
+
         @Override
         public synchronized double askKey() {
             return key;
         }
 
-        //Method via which a device can ask from the service/channel creator for the user assigned nicknames of the devices connected 
         @Override
         public synchronized String[] getMem() throws BusException {
             return nickname;
         }
 
-        //Method via which a device can ask from the service/channel creator for the Alljoyn nicknames of the devices connected
         @Override
         public synchronized String[] getUni() throws BusException {
-            return Alljoyn_unique_name;
+            return all_uni;
         }
 
     }
 
-    //MyBuslistener is a child class of Alljoyn Buslistener class which listens for activity on the channel and calls appropriatecall back methods 
     private static class MyBusListener extends BusListener {
 
         public void nameOwnerChanged(String busName, String previousOwner, String newOwner) {
@@ -198,37 +167,21 @@ public class Service {
             }
         }
     }
-    
-    //Static method which is called by the GUI when the user sets a channel name
-    public static void Set_Channle_Name(String text) {
-        channel_name = text;
+
+    public static void read(String text) {
+        s = text;
     }
 
-    /**Static method which runs the Service or Channel Creator
-     * The initial flow is same a client, so please refer to the long comment in the
-     * client code.
-     * The differences are
-     * The server's creator needs no validation of his/her chosen nickname.
-     * The device's port is required to be binded now(explained above bindSessionPort)
-     * The channel name selected is first requested if request is successful i.e.
-     * channel name does not exist, the name is granted.
-     * Now the server waits for a device to be connected.
-     */
     public static void run_service() throws BusException {
-        
-        //Initializing all the nicknames
         for (int i = 0; i < 100; i++) {
-            Alljoyn_unique_name[i] = "";
+            all_uni[i] = "";
             nickname[i] = "";
-            keys[i] = -1;
         }
-        
-        //mBus is the object which connects to the Alljoyn bus daemon
-        mBus = new BusAttachment("org.alljoyn.bus.samples", BusAttachment.RemoteMessage.Receive); 
+        mBus = new BusAttachment("org.alljoyn.bus.samples", BusAttachment.RemoteMessage.Receive);
 
         Status status;
 
-        mySignalInterface = new SignalInterface();
+        final SignalInterface mySignalInterface = new SignalInterface();
 
         status = mBus.registerBusObject(mySignalInterface, "/chatService");
         if (status != Status.OK) {
@@ -254,7 +207,7 @@ public class Service {
         }
         System.out.println("Signal Handler registered");
 
-        MethodHandler mySampleService = new MethodHandler();
+        groupSignalHandler mySampleService = new groupSignalHandler();
 
         status = mBus.registerBusObject(mySampleService, "/chatService");
         if (status != Status.OK) {
@@ -262,9 +215,8 @@ public class Service {
             return;
         }
         System.out.println("Method handler Registered");
-        
-        //Asking the user to set his/her nickname
-        Alljoyn_unique_name[name_count] = mBus.getUniqueName();
+
+        all_uni[name_count] = mBus.getUniqueName();
         Scanner scanner = new Scanner(System.in);
         System.out.println("Please enter a nick name");
         nickname[name_count] = scanner.nextLine();
@@ -278,8 +230,6 @@ public class Service {
         sessionOpts.proximity = SessionOpts.PROXIMITY_ANY;
         sessionOpts.transports = SessionOpts.TRANSPORT_ANY;
 
-        // This binds the port of the device with alljoyn bus whenver a device tries 
-        //to join the channel appropriate methods are called
         status = mBus.bindSessionPort(contactPort, sessionOpts,
                 new SessionPortListener() {
                     public boolean acceptSessionJoiner(short sessionPort, String joiner, SessionOpts sessionOpts) {
@@ -313,20 +263,19 @@ public class Service {
                 new Create_Channel().setVisible(true);
             }
         });
-        while (channel_name == null) {
+        while (s == null) {
             try {
                 Thread.sleep(1000);
             } catch (Exception e) {
 
             }
         }
-        System.out.println(channel_name);
+        System.out.println(s);
 
-        String wellKnownName = NAME_PREFIX + "."+channel_name;
+        String wellKnownName = NAME_PREFIX + "."+s;
         int flags = 0; //do not use any request name flags
         status = mBus.requestName(wellKnownName, flags);
         if (status != Status.OK) {
-            
             return;
         }
         System.out.println("BusAttachment.request 'com.my.well.known.name' successful");
@@ -345,12 +294,10 @@ public class Service {
 
             }
             System.out.println("Server running");
-            
-            //This is for the client to run infinetly
             while (true) {
 
-                Thread.sleep(20000);
-                myInterface.Notification("service_message", nickname[0],0);
+                Thread.sleep(50000);
+                myInterface.Chat("service_message", nickname[0]);
             }
         } catch (InterruptedException ex) {
             System.out.println("Interrupted");
@@ -362,21 +309,18 @@ public class Service {
     }
 }
 
-//This class creates a new thread on which a new jFrame is created for displaying the incoming notification
 class messageTh extends Thread {
 
     final String f;
-    final String all_uni;
 
-    public messageTh(String s, String uni) {
+    public messageTh(String s) {
         f = s;
-        all_uni=uni;
     }
 
     public void run() {
         java.awt.EventQueue.invokeLater(new Runnable() {
             public void run() {
-                new ChatFrame(f,all_uni).setVisible(true);
+                new ChatFrame(f).setVisible(true);
             }
         });
     }
