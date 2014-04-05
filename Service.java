@@ -19,6 +19,7 @@
  */
 package org.alljoyn.bus.sample.chat;
 
+import java.util.ArrayList;
 import java.util.Scanner;
 import org.alljoyn.bus.BusAttachment;
 import org.alljoyn.bus.BusException;
@@ -62,7 +63,7 @@ public class Service {
 
     private static double[] keys = new double[100];               //stores the all the keys it has recieved
     private static int key_count = 0;
-    private static String[] channels;               //Array for storing all the visible Alljoyn Channel
+    private static ArrayList<String> channels;               //Array for storing all the visible Alljoyn Channel
     private static int channel_count = 0;
     private static Boolean channel_name_checked = false;
     private static Boolean running;
@@ -198,8 +199,8 @@ public class Service {
 
         public void foundAdvertisedName(String name, short transport, String namePrefix) {
             System.out.println(String.format("BusListener.foundAdvertisedName(%s, %d, %s)", name, transport, namePrefix));
-            channels[channel_count] = name.substring(29);
-            channel_count++;
+            channels.add(name.substring(29));
+           
 
         }
 
@@ -208,6 +209,16 @@ public class Service {
                 System.out.println("BusAttachement.nameOwnerChanged(" + busName + ", " + previousOwner + ", " + newOwner);
             }
         }
+        
+        public void lostAdvertisedName(String name, short transport, String namePrefix) {
+                String channel_name = name.substring(29);
+                if(channels.contains(channel_name)){
+                    System.out.println("LostAdvertisedName " + name);
+                    channels.remove(channel_name);
+                    System.out.println(channels.size());
+                }
+            } 
+
     }
 
     //Static method which is called by the GUI when the user sets a channel name
@@ -235,14 +246,14 @@ public class Service {
         channel_name_checked=false;
         mySignalInterface=null;
         myInterface=null;
-        channels = new String[100];
+        channels = new ArrayList<String>();
       
         //Initializing all the nicknames
         for (int i = 0; i < 100; i++) {
             Alljoyn_unique_name[i] = "";
             nickname[i] = "";
             keys[i] = -1;
-            channels[i] = "";
+            
         }
 
         //mBus is the object which connects to the Alljoyn bus daemon
@@ -336,7 +347,7 @@ public class Service {
                 new Create_Channel(channels).setVisible(true);
             }
         });
-        while (channel_name == null&&running) {
+        while (channel_name == null && running) {
             try {
                 Thread.sleep(100);
             } catch (Exception e) {
@@ -363,7 +374,7 @@ public class Service {
         System.out.println("BusAttachment.advertiseName 'com.my.well.known.name' successful");
 
         try {
-            while (!mSessionEstablished&&running) {
+            while (!mSessionEstablished && running) {
                 Thread.sleep(10);
 
             }
@@ -379,6 +390,8 @@ public class Service {
             System.out.println("Interrupted");
         }
         System.out.println("Service exiting");
+        mBus.cancelAdvertiseName(wellKnownName, SessionOpts.TRANSPORT_ANY);
+        mBus.disconnect();
         App.on_close();
     }
 

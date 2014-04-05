@@ -4,6 +4,7 @@ package org.alljoyn.bus.sample.chat;
  *
  * @author Shashank
  */
+import java.util.ArrayList;
 import org.alljoyn.bus.BusAttachment;
 import org.alljoyn.bus.BusException;
 import org.alljoyn.bus.BusListener;
@@ -44,7 +45,7 @@ public class Client implements Runnable {
     static int channel_joined = -1;
     static int channel_detected = -1;
 
-    private static String[] channels;               //Array for storing all the visible Alljoyn Channel
+    private static ArrayList<String> channels;               //Array for storing all the visible Alljoyn Channel
     private static int channel_count = 0;
     private static int channel_selected = -1;
     private static double[] keys = new double[100]; //Array for storing all the keys that the device received
@@ -194,7 +195,7 @@ public class Client implements Runnable {
             return;
         }
 
-        String name = channels[channel_selected];
+        String name = channels.get(channel_selected);
         Status status = mBus.joinSession(NAME_PREFIX + "." + name, contactPort, sessionId, sessionOpts, new SessionListener());
         if (status != Status.OK) {
             return;
@@ -247,9 +248,10 @@ public class Client implements Runnable {
      */
     public static void run_client(Boolean run) throws BusException, InterruptedException {
         running = run;
-        channels = new String[100];
+        channels = new ArrayList<String>();
+        channels.add("nan");
         for (int i = 0; i < 100; i++) {
-            channels[i] = "";
+            
             keys[i] = -1;
         }
         channel_count = 0;
@@ -262,8 +264,8 @@ public class Client implements Runnable {
             //This method is called whenever the listener discovers a new channel on the network
             public void foundAdvertisedName(String name, short transport, String namePrefix) {
                 System.out.println(String.format("BusListener.foundAdvertisedName(%s, %d, %s)", name, transport, namePrefix));
-                channels[channel_count] = name.substring(29);
-                channel_count++;
+                channels.add(name.substring(29));
+                
                 channel_detected = 1;
             }
 
@@ -272,6 +274,15 @@ public class Client implements Runnable {
                     System.out.println("BusAttachement.nameOwnerChagned(" + busName + ", " + previousOwner + ", " + newOwner);
                 }
             }
+            
+            public void lostAdvertisedName(String name, short transport, String namePrefix) {
+                String channel_name = name.substring(29);
+                if(channels.contains(channel_name)){
+                    System.out.println("LostAdvertisedName " + name);
+                    channels.remove(channel_name);
+                    System.out.println(channels.size());
+                }
+            } 
 
         }
 
@@ -358,6 +369,7 @@ public class Client implements Runnable {
             Thread.sleep(5000);
         }
         System.out.println("Client exiting");
+        mBus.disconnect();
         App.on_close();
     }
 

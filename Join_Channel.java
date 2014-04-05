@@ -7,6 +7,7 @@ package org.alljoyn.bus.sample.chat;
 
 import java.awt.Color;
 import java.awt.Component;
+import java.util.ArrayList;
 import javax.swing.DefaultListModel;
 
 /**
@@ -19,18 +20,16 @@ public class Join_Channel extends javax.swing.JFrame {
      * Creates new form Join_Channel
      */
     
-    public Join_Channel(final String[] s) {
+    public Join_Channel(final ArrayList<String> s) {
         initComponents();
         getContentPane().setBackground(Color.getHSBColor(0, 153, 102));
         setTitle("Join channel");
         
         DefaultListModel d1=new DefaultListModel();
-        for(int i=0;i<5;i++){
-           if(s[i]!=""){
-               d1.addElement(s[i]);
-           }
-           else{break;}
+        for(int i=1;i<s.size();i++){
+            d1.addElement(s.get(i));
         }
+        
         jList1.setModel(d1);
         
         final Component frame=this;
@@ -48,13 +47,12 @@ public class Join_Channel extends javax.swing.JFrame {
         });
     }
     
-    public void update_list(final String[] s) {
+    public void update_list(final ArrayList<String> s) {
         DefaultListModel d1=new DefaultListModel();
-        for(int i=0;i<5;i++){
-            if(s[i]!=""){
-               d1.addElement(s[i]);
-           }
-           else{break;}
+        System.out.println("update called");
+        for(int i=1;i<s.size();i++){
+           d1.addElement(s.get(i));
+            System.out.println(s.get(i));         
         }
         jList1.setModel(d1);
     }  
