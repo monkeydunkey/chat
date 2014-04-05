@@ -19,10 +19,12 @@ public class ChatFrame extends javax.swing.JFrame {
     /**
      * Creates new form ChatFrame
      */
-    public ChatFrame(String s) {
+    String alljoyn_uni;
+    public ChatFrame(String s,String uni) {
         
         initComponents();
         jLabel1.setText(s);
+        alljoyn_uni=uni;
     }
 
     /**
@@ -74,12 +76,12 @@ public class ChatFrame extends javax.swing.JFrame {
     private void jButton1ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton1ActionPerformed
         // TODO add your handling code here:
        try{
-           Client.sendMessage("bomb");
+           Client.sendMessage("bomb",alljoyn_uni);
        }
       
        catch(Exception e){
             try{
-           Service.sendMessage("bomb");
+           Service.sendMessage("bomb",alljoyn_uni);
        } 
             catch(BusException f){
           System.out.println("exception caught"); 
@@ -118,7 +120,7 @@ public class ChatFrame extends javax.swing.JFrame {
         /* Create and display the form */
         java.awt.EventQueue.invokeLater(new Runnable() {
             public void run() {
-                new ChatFrame("hi").setVisible(true);
+                //new ChatFrame("hi","fuck").setVisible(true);
             }
         });
     }

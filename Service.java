@@ -39,8 +39,10 @@ public class Service {
         System.loadLibrary("alljoyn_java");
     }
 
-    public static void sendMessage(String s) throws BusException {
-        myInterface.Notification(s, nickname[0],key);
+    public static void sendMessage(String s,String uni) throws BusException {
+        SignalEmitter emitter = new SignalEmitter(mySignalInterface, uni, mSessionId, SignalEmitter.GlobalBroadcast.Off);
+        ChatInterface usrInterface = emitter.getInterface(ChatInterface.class);
+        usrInterface.Notification(s, nickname[0],0);
     }
 
     // Start of variable Declarations
@@ -92,10 +94,10 @@ public class Service {
     public static class SignalHandler {
         
         @BusSignalHandler(iface = "org.alljoyn.bus.samples.chat", signal = "Notification")
-        public void Notification(String string, String nick, double key) {
+        public void Notification(String string, String nick, double key1) {
             Boolean key_exist=false;
             for(int i=0;i<100;i++){
-                if(keys[i]==key)
+                if(keys[i]==key1)
                 {
                     key_exist=true;break;
                 }
@@ -104,14 +106,14 @@ public class Service {
                     break;
                 }
             }
-            if(key_exist||key==0){
+            if(key_exist||key1==0||key==key1){
             MessageContext ctx = mBus.getMessageContext();
-
+            String nickname = ctx.sender; //returns the alljoyn unique name of the sender;
             String as = nick + " -> " + string;
-            new messageTh(as).start();
+            new messageTh(as,nickname).start();
             
             // for debugging purpose
-            String nickname = ctx.sender; //returns the alljoyn unique name of the sender;
+            
             nickname = nickname.substring(nickname.length() - 10, nickname.length());
             System.out.println(nickname + ": " + string);
             }
@@ -120,15 +122,16 @@ public class Service {
 
         @BusSignalHandler(iface = "org.alljoyn.bus.samples.chat", signal = "nickname")
         public void nickname(String usrname, String Alljoyn_unique_nameque) throws BusException {
+            System.out.println("!!!Validation Called!!!");
             SignalEmitter emitter = new SignalEmitter(mySignalInterface, Alljoyn_unique_nameque, mSessionId, SignalEmitter.GlobalBroadcast.Off);
             ChatInterface usrInterface = emitter.getInterface(ChatInterface.class);
             int do_not_contain = 0;             // 0 is for false and 1 true;
             for (int i = 0; i < 100; i++) {
-                if(nickname[i]==usrname){
+                if(nickname[i].equals(usrname)){
                     do_not_contain = 0;
                     break;
                 }
-                if (nickname[i] == "") {
+                if (nickname[i].equals("")) {
                     do_not_contain = 1;
                     break;
                 }
@@ -346,7 +349,7 @@ public class Service {
             //This is for the client to run infinetly
             while (true) {
 
-                Thread.sleep(50000);
+                Thread.sleep(20000);
                 myInterface.Notification("service_message", nickname[0],0);
             }
         } catch (InterruptedException ex) {
@@ -363,15 +366,17 @@ public class Service {
 class messageTh extends Thread {
 
     final String f;
+    final String all_uni;
 
-    public messageTh(String s) {
+    public messageTh(String s, String uni) {
         f = s;
+        all_uni=uni;
     }
 
     public void run() {
         java.awt.EventQueue.invokeLater(new Runnable() {
             public void run() {
-                new ChatFrame(f).setVisible(true);
+                new ChatFrame(f,all_uni).setVisible(true);
             }
         });
     }

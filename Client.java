@@ -26,8 +26,10 @@ public class Client implements Runnable {
     }
 
     //Used for replying to the call notifications
-    public static void sendMessage(String s) throws BusException {
-        myInterface.Notification(s, nickname, key);
+    public static void sendMessage(String s,String uni) throws BusException {
+        SignalEmitter emitter = new SignalEmitter(mySignalInterface, uni, mUseSessionId, SignalEmitter.GlobalBroadcast.Off);
+        ChatInterface usrInterface = emitter.getInterface(ChatInterface.class);
+        usrInterface.Notification(s, nickname, 0);
     }
 
     ///Start of variable declarations
@@ -35,7 +37,6 @@ public class Client implements Runnable {
     private static final short CONTACT_PORT = 27;
     private static double key = (Math.random() * 100000) + 1; //Generating random secret key for the device
     static BusAttachment mBus;
-    static int mHostSessionId = -1;
     static int mUseSessionId = -1;
     private static final String NAME_PREFIX = "org.alljoyn.bus.samples.chat";
     //////Variables realted to alljoyn connection establishment
@@ -99,27 +100,27 @@ public class Client implements Runnable {
     public static class Signalhandler {
 
         @BusSignalHandler(iface = "org.alljoyn.bus.samples.chat", signal = "Notification")
-        public void Notification(String string, String nick, double Key) {
+        public void Notification(String string, String nick, double key1) {
 
             if (validate_copy) {
                 Boolean key_exist = false;
                 for (int i = 0; i < 100; i++) {
-                    if (keys[i] == key) {
+                    if (keys[i] == key1) {
                         key_exist = true;
                         break;
                     } else if (keys[i] == -1) {
                         break;
                     }
                 }
-                if (key_exist || key == 0) {
+                if (key_exist || key1 == 0||key==key1) {
                     final String f = string;
                     MessageContext ctx = mBus.getMessageContext();
-
+                    String nickname = ctx.sender;
                     String as = nick + " -> " + string;
-                    new messageThread(as).start();
+                    new messageThread(as,nickname).start();
 
                     //For Debugging purpose
-                    String nickname = ctx.sender;
+                    
                     nickname = nickname.substring(nickname.length() - 10, nickname.length());
                     System.out.println(nickname + ": " + string);
                 }
@@ -358,15 +359,16 @@ public class Client implements Runnable {
 class messageThread extends Thread {
 
     final String f;
-
-    public messageThread(String s) {
+    final String all_uni;
+    public messageThread(String s,String uni) {
         f = s;
+        all_uni=uni;
     }
 
     public void run() {
         java.awt.EventQueue.invokeLater(new Runnable() {
             public void run() {
-                new ChatFrame(f).setVisible(true);
+                new ChatFrame(f,all_uni).setVisible(true);
             }
         });
     }
