@@ -142,6 +142,7 @@ public class GUI_SmartJoyn extends javax.swing.JFrame {
         // TODO add your handling code here:
         App.type(2);
         jButton1.setEnabled(false);
+        jButton2.setEnabled(false);
         jButton4.setEnabled(true);
         /* Create and display the form */
         
@@ -155,6 +156,7 @@ public class GUI_SmartJoyn extends javax.swing.JFrame {
        
        App.type(1);
        jButton2.setEnabled(false);
+       jButton1.setEnabled(false);
        jButton4.setEnabled(true);
     }//GEN-LAST:event_jButton1ActionPerformed
 

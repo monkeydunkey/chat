@@ -43,7 +43,7 @@ public class Service {
     public static void sendMessage(String s, String uni) throws BusException {
         SignalEmitter emitter = new SignalEmitter(mySignalInterface, uni, mSessionId, SignalEmitter.GlobalBroadcast.Off);
         ChatInterface usrInterface = emitter.getInterface(ChatInterface.class);
-        usrInterface.Notification(s, nickname[0], 0);
+        usrInterface.Notification(s, nickname.get(0), 0);
     }
 
     // Start of variable Declarations
@@ -57,9 +57,8 @@ public class Service {
     static int mUseSessionId = -1;
     private static double key = (Math.random() * 100000) + 1;         //Generating random secret key for the device
 
-    private static String[] Alljoyn_unique_name = new String[100];//stores the nicknames provided to devices by alljoyn
-    static String[] nickname = new String[100];                   //stores the nicknames chosen by the user
-    private static int name_count = 0;
+    private static ArrayList<String> Alljoyn_unique_name;//stores the nicknames provided to devices by alljoyn
+    static ArrayList<String> nickname;                   //stores the nicknames chosen by the user
 
     private static double[] keys = new double[100];               //stores the all the keys it has recieved
     private static int key_count = 0;
@@ -67,13 +66,11 @@ public class Service {
     private static int channel_count = 0;
     private static Boolean channel_name_checked = false;
     private static Boolean running;
-    
+
     private static ChatInterface myInterface = null;
     private static SignalInterface mySignalInterface;
     static String channel_name = null;
     //End of Variable Declarations
-
-   
 
     // The signal interface is used to send data using alljoyn's signals
     public static class SignalInterface implements ChatInterface, BusObject {
@@ -130,22 +127,10 @@ public class Service {
             System.out.println("!!!Validation Called!!!");
             SignalEmitter emitter = new SignalEmitter(mySignalInterface, Alljoyn_unique_nameque, mSessionId, SignalEmitter.GlobalBroadcast.Off);
             ChatInterface usrInterface = emitter.getInterface(ChatInterface.class);
-            int do_not_contain = 0;             // 0 is for false and 1 true;
-            for (int i = 0; i < 100; i++) {
-                if (nickname[i].equals(usrname)) {
-                    do_not_contain = 0;
-                    break;
-                }
-                if (nickname[i].equals("")) {
-                    do_not_contain = 1;
-                    break;
-                }
 
-            }
-            if (do_not_contain == 1) {
-                nickname[name_count] = usrname;
-                Alljoyn_unique_name[name_count] = Alljoyn_unique_nameque;
-                name_count++;
+            if (!nickname.contains(usrname)) {
+                nickname.add(usrname);
+                Alljoyn_unique_name.add(Alljoyn_unique_nameque);
                 usrInterface.validate(true);
 
             } else {
@@ -183,13 +168,21 @@ public class Service {
         //Method via which a device can ask from the service/channel creator for the user assigned nicknames of the devices connected 
         @Override
         public synchronized String[] getMem() throws BusException {
-            return nickname;
+            String[] temp = new String[nickname.size()];
+            for (int i = 0; i < nickname.size(); i++) {
+                temp[i] = nickname.get(i);
+            }
+            return temp;
         }
 
         //Method via which a device can ask from the service/channel creator for the Alljoyn nicknames of the devices connected
         @Override
         public synchronized String[] getUni() throws BusException {
-            return Alljoyn_unique_name;
+            String[] temp = new String[Alljoyn_unique_name.size()];
+            for (int i = 0; i < Alljoyn_unique_name.size(); i++) {
+                temp[i] = Alljoyn_unique_name.get(i);
+            }
+            return temp;
         }
 
     }
@@ -200,7 +193,6 @@ public class Service {
         public void foundAdvertisedName(String name, short transport, String namePrefix) {
             System.out.println(String.format("BusListener.foundAdvertisedName(%s, %d, %s)", name, transport, namePrefix));
             channels.add(name.substring(29));
-           
 
         }
 
@@ -209,15 +201,15 @@ public class Service {
                 System.out.println("BusAttachement.nameOwnerChanged(" + busName + ", " + previousOwner + ", " + newOwner);
             }
         }
-        
+
         public void lostAdvertisedName(String name, short transport, String namePrefix) {
-                String channel_name = name.substring(29);
-                if(channels.contains(channel_name)){
-                    System.out.println("LostAdvertisedName " + name);
-                    channels.remove(channel_name);
-                    System.out.println(channels.size());
-                }
-            } 
+            String channel_name = name.substring(29);
+            if (channels.contains(channel_name)) {
+                System.out.println("LostAdvertisedName " + name);
+                channels.remove(channel_name);
+                System.out.println(channels.size());
+            }
+        }
 
     }
 
@@ -226,9 +218,10 @@ public class Service {
         channel_name = text;
     }
 
-    public static void set_running(Boolean run){
+    public static void set_running(Boolean run) {
         running = run;
     }
+
     /**
      * Static method which runs the Service or Channel Creator The initial flow
      * is same a client, so please refer to the long comment in the client code.
@@ -239,21 +232,20 @@ public class Service {
      * granted. Now the server waits for a device to be connected.
      */
     public static void run_service(Boolean run) throws BusException {
-        running=run;
-        channel_count=0;
-        key_count=0;
-        name_count=0;
-        channel_name_checked=false;
-        mySignalInterface=null;
-        myInterface=null;
+        running = run;
+        channel_count = 0;
+        key_count = 0;
+
+        channel_name_checked = false;
+        mySignalInterface = null;
+        myInterface = null;
         channels = new ArrayList<String>();
-      
+        channels.add("nan");
+        Alljoyn_unique_name = new ArrayList<String>();
+        nickname = new ArrayList<String>();
         //Initializing all the nicknames
         for (int i = 0; i < 100; i++) {
-            Alljoyn_unique_name[i] = "";
-            nickname[i] = "";
             keys[i] = -1;
-            
         }
 
         //mBus is the object which connects to the Alljoyn bus daemon
@@ -298,11 +290,10 @@ public class Service {
 
         mBus.findAdvertisedName(NAME_PREFIX);
         //Asking the user to set his/her nickname
-        Alljoyn_unique_name[name_count] = mBus.getUniqueName();
+        Alljoyn_unique_name.add(mBus.getUniqueName());
         Scanner scanner = new Scanner(System.in);
         System.out.println("Please enter a nick name");
-        nickname[name_count] = scanner.nextLine();
-        name_count++;
+        nickname.add(scanner.nextLine());
 
         Mutable.ShortValue contactPort = new Mutable.ShortValue(CONTACT_PORT);
 
@@ -335,6 +326,15 @@ public class Service {
 
                         SignalEmitter emitter = new SignalEmitter(mySignalInterface, mSessionId, SignalEmitter.GlobalBroadcast.Off);
                         myInterface = emitter.getInterface(ChatInterface.class);
+                        mBus.setSessionListener(id, new SessionListener() {
+                            public void sessionMemberRemoved(int sessionId, String uniqueName) {
+                                System.out.println("member left");
+                                int i=Alljoyn_unique_name.indexOf(uniqueName);
+                                Alljoyn_unique_name.remove(i);
+                                nickname.remove(i);
+                            }
+                        }
+                        );
                     }
                 });
         if (status != Status.OK) {
@@ -381,10 +381,10 @@ public class Service {
             System.out.println("Server running");
 
             //This is for the client to run infinetly
-            while (true&&running) {
+            while (true && running) {
 
                 Thread.sleep(20000);
-                myInterface.Notification("service_message", nickname[0], 0);
+                myInterface.Notification("service_message", nickname.get(0), 0);
             }
         } catch (InterruptedException ex) {
             System.out.println("Interrupted");

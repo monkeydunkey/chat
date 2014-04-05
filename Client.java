@@ -195,7 +195,8 @@ public class Client implements Runnable {
             return;
         }
 
-        String name = channels.get(channel_selected);
+        String name = channels.get(channel_selected+1);
+        System.out.println(name);
         Status status = mBus.joinSession(NAME_PREFIX + "." + name, contactPort, sessionId, sessionOpts, new SessionListener());
         if (status != Status.OK) {
             return;
@@ -203,11 +204,11 @@ public class Client implements Runnable {
         System.out.println(String.format("BusAttachement.joinSession successful sessionId = %d", sessionId.value));
         mUseSessionId = sessionId.value;
         SignalEmitter emitter = new SignalEmitter(mySignalInterface, sessionId.value, SignalEmitter.GlobalBroadcast.Off);
-
+        System.out.println("flag set");
         myInterface = emitter.getInterface(ChatInterface.class);
         mProxyObj = mBus.getProxyBusObject(NAME_PREFIX + "." + name, "/chatService", sessionId.value, new Class<?>[]{GroupInterface.class});
         mGroupInterface = mProxyObj.getInterface(GroupInterface.class);
-
+        
         channel_joined = 2;
     }
 
@@ -335,6 +336,7 @@ public class Client implements Runnable {
             }
         });
         joinChannel();
+        System.out.println("join channel");
         if (channel_selected == -2) {
             return;
         }
@@ -361,7 +363,7 @@ public class Client implements Runnable {
 
         String[] uni_names = mGroupInterface.getUni();
         String[] nick = mGroupInterface.getMem();
-        for (int i = 0; i < 10; i++) {
+        for (int i = 0; i < nick.length; i++) {
             System.out.println(uni_names[i] + " - " + nick[i]);
         }
         //This is for the client to run infinetly 
