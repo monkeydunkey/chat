@@ -65,11 +65,12 @@ public class Create_Channel extends javax.swing.JFrame {
         jLabel1.setBackground(new java.awt.Color(255, 204, 204));
         jLabel1.setFont(new java.awt.Font("Times New Roman", 1, 18)); // NOI18N
         jLabel1.setText("                        Create Channel");
+        jLabel1.setCursor(new java.awt.Cursor(java.awt.Cursor.DEFAULT_CURSOR));
+        jLabel1.setInheritsPopupMenu(false);
 
         jLabel2.setFont(new java.awt.Font("Times New Roman", 0, 12)); // NOI18N
         jLabel2.setText("Channel Name");
 
-        jTextField1.setText("Enter channel name");
         jTextField1.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
                 jTextField1ActionPerformed(evt);
@@ -108,8 +109,8 @@ public class Create_Channel extends javax.swing.JFrame {
         layout.setVerticalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(layout.createSequentialGroup()
-                .addComponent(jLabel1, javax.swing.GroupLayout.PREFERRED_SIZE, 58, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addGap(1, 1, 1)
+                .addComponent(jLabel1, javax.swing.GroupLayout.PREFERRED_SIZE, 53, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addComponent(jLabel3)
                 .addGap(3, 3, 3)
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
@@ -127,15 +128,19 @@ public class Create_Channel extends javax.swing.JFrame {
 
     private void jButton1ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton1ActionPerformed
         String channel_name = jTextField1.getText();
-
-        if (channels.contains(channel_name)) {
+        if (channel_name.equals("")) {
+            jLabel3.setText("                               Please Enter a name");
             jLabel3.setVisible(true);
-
         } else {
-            Service.Set_Channel_Name(channel_name);
-            this.dispose();
-        }
+            if (channels.contains(channel_name)) {
+                jLabel3.setText("                           That Channel name is already taken");
+                jLabel3.setVisible(true);
 
+            } else {
+                Service.Set_Channel_Name(channel_name);
+                this.dispose();
+            }
+        }
 
     }//GEN-LAST:event_jButton1ActionPerformed
 
