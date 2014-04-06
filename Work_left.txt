@@ -1,5 +1,2 @@
 Changes/Addition needed to be done
- ask key GUI implementation
- Missed call handling
- Do we give the user a option of not setting his user name
- Channel list implementation
+What to do when channel creator closes the channel.
