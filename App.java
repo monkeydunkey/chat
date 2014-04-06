@@ -78,6 +78,15 @@ public class App {
                 }
                 ser_cli=0;
             }
+            if(ser_cli==5){
+                if(service_or_client==1){
+                    Service.see_missed_calls();
+                }
+                if(service_or_client==2){
+                    Client.see_missed_calls();
+                }
+                ser_cli=0;
+            }
         }
     }
 }

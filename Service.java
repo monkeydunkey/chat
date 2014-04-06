@@ -48,6 +48,9 @@ public class Service {
         usrInterface.Notification(s, nickname.get(0), 0);
     }
 
+    public static void call_missed(String s){
+        MissedCalls.add(s);
+    }
     // Start of variable Declarations
     //Variables related to alljoyn session establishemnt
     static boolean mSessionEstablished = false;
@@ -61,7 +64,8 @@ public class Service {
 
     private static ArrayList<String> Alljoyn_unique_name;//stores the nicknames provided to devices by alljoyn
     static ArrayList<String> nickname;                   //stores the nicknames chosen by the user
-
+    private static ArrayList<String> MissedCalls;
+    
     private static double[] keys = new double[100];               //stores the all the keys it has recieved
     private static int key_count = 0;
     private static ArrayList<String> channels;               //Array for storing all the visible Alljoyn Channel
@@ -295,6 +299,15 @@ public class Service {
             usrInterface.askKey(Alljoyn_unique_name.get(0));
         }
     }
+    
+    public static void see_missed_calls(){
+        java.awt.EventQueue.invokeLater(new Runnable() {
+            public void run() {
+                new Call_Notification(MissedCalls).setVisible(true);
+            }
+        });
+    }
+    
     /**
      * Static method which runs the Service or Channel Creator The initial flow
      * is same a client, so please refer to the long comment in the client code.
@@ -308,7 +321,7 @@ public class Service {
         running = run;
         channel_count = 0;
         key_count = 0;
-
+        MissedCalls=new ArrayList<String>();
         channel_name_checked = false;
         mySignalInterface = null;
         myInterface = null;
@@ -496,7 +509,7 @@ class messageTh extends Thread {
     public void run() {
         java.awt.EventQueue.invokeLater(new Runnable() {
             public void run() {
-                new ChatFrame(f, all_uni).setVisible(true);
+                new ChatFrame(f, all_uni,1).setVisible(true);
             }
         });
     }

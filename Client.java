@@ -35,6 +35,9 @@ public class Client implements Runnable {
         usrInterface.Notification(s, nickname, 0);
     }
 
+    public static void call_missed(String s){
+        MissedCalls.add(s);
+    }
     ///Start of variable declarations
     //////Variables realted to alljoyn connection establishment
     private static final short CONTACT_PORT = 27;
@@ -49,6 +52,7 @@ public class Client implements Runnable {
 
     private static ArrayList<String> channels;               //Array for storing all the visible Alljoyn Channel
     private static int channel_count = 0;
+    private static ArrayList<String> MissedCalls;
     private static int channel_selected = -1;
     private static double[] keys = new double[100]; //Array for storing all the keys that the device received
     private static int key_count = 0;
@@ -292,6 +296,14 @@ public class Client implements Runnable {
 
     }
 
+    public static void see_missed_calls(){
+        java.awt.EventQueue.invokeLater(new Runnable() {
+            public void run() {
+                new Call_Notification(MissedCalls).setVisible(true);
+            }
+        });
+    }
+    
     /**
      * This method run the code for the client side The process is a as follow:-
      * Initially a Alljoyn busattachment object is initialized this object
@@ -323,6 +335,7 @@ public class Client implements Runnable {
         //JOptionPane.showMessageDialog(null, "this is test");
         running = run;
         channels = new ArrayList<String>();
+        MissedCalls=new ArrayList<String>();
         channels.add("nan");
         for (int i = 0; i < 100; i++) {
 
@@ -483,16 +496,17 @@ class messageThread extends Thread {
 
     final String f;
     final String all_uni;
-
+    
     public messageThread(String s, String uni) {
         f = s;
         all_uni = uni;
+        
     }
 
     public void run() {
         java.awt.EventQueue.invokeLater(new Runnable() {
             public void run() {
-                new ChatFrame(f, all_uni).setVisible(true);
+                new ChatFrame(f, all_uni,2).setVisible(true);
             }
         });
     }

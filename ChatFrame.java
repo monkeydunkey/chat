@@ -10,6 +10,7 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import javax.swing.JFrame;
 import org.alljoyn.bus.BusException;
 import javax.swing.Timer;
 /**
@@ -23,19 +24,24 @@ public class ChatFrame extends javax.swing.JFrame {
      */
     String alljoyn_uni;
     
-    public ChatFrame(String s,String uni) {
+    public ChatFrame(final String s,final String uni,final int i) {
        
         initComponents();
         jLabel1.setText(s);
         alljoyn_uni=uni;
         jLabel2.setVisible(false);
-        
+        final JFrame f= this;
         Timer t = new Timer(20000,new ActionListener(){
 
             public void actionPerformed(ActionEvent ae) {
                 jLabel2.setVisible(true);
                 jButton1.setEnabled(false);
-                
+                if (i == 1) {
+                Service.call_missed(uni+" - "+s);
+                } else {
+                Client.call_missed(uni+" - "+s);
+            }
+                f.dispose();
             }
         });
         t.start();
