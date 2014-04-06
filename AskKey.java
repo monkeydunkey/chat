@@ -28,6 +28,7 @@ public class AskKey extends javax.swing.JFrame {
     String caller_name;
 
     public AskKey(String[] list, int j, String name) {
+        
         BufferedImage bf1, bf2;
         ser_cli = j;
         caller_name = name;
@@ -39,14 +40,15 @@ public class AskKey extends javax.swing.JFrame {
         } catch (IOException e) {
             e.printStackTrace();
         }
-
+        initComponents();
         d1 = new DefaultListModel();
-        for (int i = 1; i < list.length; i++) {
+        for (int i = 0; i < list.length; i++) {
             d1.addElement(list[i]);
+            System.out.println(list[i]);
         }
+        if(jList1==null){System.out.println("sahoo wtf");}
         jList1.setModel(d1);
         setTitle("SMART JOYN");
-        initComponents();
         jLabel3.setEnabled(false);
         setResizable(false);
     }
@@ -62,26 +64,19 @@ public class AskKey extends javax.swing.JFrame {
 
         jLabel1 = new javax.swing.JLabel();
         jLabel2 = new javax.swing.JLabel();
-        jScrollPane1 = new javax.swing.JScrollPane();
-        jList1 = new javax.swing.JList();
         jButton1 = new javax.swing.JButton();
         jButton2 = new javax.swing.JButton();
         jLabel3 = new javax.swing.JLabel();
+        jScrollPane1 = new javax.swing.JScrollPane();
+        jList1 = new javax.swing.JList();
 
-        setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
+        setDefaultCloseOperation(javax.swing.WindowConstants.DO_NOTHING_ON_CLOSE);
 
         jLabel1.setFont(new java.awt.Font("Arial Black", 3, 20)); // NOI18N
         jLabel1.setText("Ask Key");
 
         jLabel2.setFont(new java.awt.Font("Arial Black", 3, 18)); // NOI18N
         jLabel2.setText("Ask a user for key :");
-
-        jList1.setFont(new java.awt.Font("Arial Black", 0, 14)); // NOI18N
-        jList1.setSelectionMode(javax.swing.ListSelectionModel.SINGLE_SELECTION);
-        jList1.setToolTipText("user x");
-        jList1.setDragEnabled(true);
-        jList1.setDropMode(javax.swing.DropMode.INSERT);
-        jScrollPane1.setViewportView(jList1);
 
         jButton1.setFont(new java.awt.Font("Arial Black", 3, 16)); // NOI18N
         jButton1.setText("Enter");
@@ -102,6 +97,13 @@ public class AskKey extends javax.swing.JFrame {
         jLabel3.setForeground(new java.awt.Color(255, 0, 0));
         jLabel3.setText("Please do not Select your own self");
 
+        jList1.setModel(new javax.swing.AbstractListModel() {
+            String[] strings = { "Item 1", "Item 2", "Item 3", "Item 4", "Item 5" };
+            public int getSize() { return strings.length; }
+            public Object getElementAt(int i) { return strings[i]; }
+        });
+        jScrollPane1.setViewportView(jList1);
+
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(getContentPane());
         getContentPane().setLayout(layout);
         layout.setHorizontalGroup(
@@ -113,16 +115,6 @@ public class AskKey extends javax.swing.JFrame {
                 .addComponent(jButton2)
                 .addGap(34, 34, 34))
             .addGroup(layout.createSequentialGroup()
-                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                    .addGroup(layout.createSequentialGroup()
-                        .addContainerGap()
-                        .addComponent(jScrollPane1))
-                    .addGroup(layout.createSequentialGroup()
-                        .addGap(70, 70, 70)
-                        .addComponent(jLabel2, javax.swing.GroupLayout.PREFERRED_SIZE, 219, javax.swing.GroupLayout.PREFERRED_SIZE)
-                        .addGap(0, 47, Short.MAX_VALUE)))
-                .addContainerGap())
-            .addGroup(layout.createSequentialGroup()
                 .addGap(117, 117, 117)
                 .addComponent(jLabel1, javax.swing.GroupLayout.PREFERRED_SIZE, 105, javax.swing.GroupLayout.PREFERRED_SIZE)
                 .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
@@ -130,6 +122,12 @@ public class AskKey extends javax.swing.JFrame {
                 .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
                 .addComponent(jLabel3, javax.swing.GroupLayout.PREFERRED_SIZE, 187, javax.swing.GroupLayout.PREFERRED_SIZE)
                 .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
+            .addGroup(layout.createSequentialGroup()
+                .addGap(62, 62, 62)
+                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING)
+                    .addComponent(jScrollPane1, javax.swing.GroupLayout.PREFERRED_SIZE, 227, javax.swing.GroupLayout.PREFERRED_SIZE)
+                    .addComponent(jLabel2, javax.swing.GroupLayout.PREFERRED_SIZE, 219, javax.swing.GroupLayout.PREFERRED_SIZE))
+                .addContainerGap(57, Short.MAX_VALUE))
         );
         layout.setVerticalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
@@ -140,8 +138,8 @@ public class AskKey extends javax.swing.JFrame {
                 .addComponent(jLabel2)
                 .addGap(8, 8, 8)
                 .addComponent(jLabel3, javax.swing.GroupLayout.PREFERRED_SIZE, 21, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
-                .addComponent(jScrollPane1, javax.swing.GroupLayout.PREFERRED_SIZE, 195, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                .addComponent(jScrollPane1, javax.swing.GroupLayout.PREFERRED_SIZE, 200, javax.swing.GroupLayout.PREFERRED_SIZE)
                 .addGap(18, 18, 18)
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
                     .addComponent(jButton1)
@@ -156,12 +154,12 @@ public class AskKey extends javax.swing.JFrame {
         // TODO add your handling code here:
         int ind = jList1.getSelectedIndex();
         if (caller_name.equals((String) jList1.getSelectedValue())) {
-            
+            jLabel3.setEnabled(true);
         } else {
             if (ser_cli == 1) {
-
+                Service.set_ask_key_ind(ind);
             } else {
-
+                Client.set_ask_key_ind(ind);
             }
         }
     }//GEN-LAST:event_jButton1ActionPerformed
@@ -228,6 +226,5 @@ public class AskKey extends javax.swing.JFrame {
     private javax.swing.JList jList1;
     private javax.swing.JScrollPane jScrollPane1;
     // End of variables declaration//GEN-END:variables
-    private DefaultListModel listModelak = null;
-    private String user_name = null;
+    
 }

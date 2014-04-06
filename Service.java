@@ -69,7 +69,8 @@ public class Service {
     private static Boolean channel_name_checked = false;
     private static Boolean running;
     private static Create_Channel c1;
-
+    private static int ask_key_ind = -1;
+    
     private static ChatInterface myInterface = null;
     private static SignalInterface mySignalInterface;
     static String channel_name = null;
@@ -158,8 +159,13 @@ public class Service {
 
         @BusSignalHandler(iface = "org.alljoyn.bus.samples.chat", signal = "sendKey")
         public void sendKey(Double a) {
+            if(a==-1.0){
+                JOptionPane.showMessageDialog(null, "The device did not shared it's key");
+            }
+            else{
             keys[key_count] = a;
             key_count++;
+            }
         }
 
         @BusSignalHandler(iface = "org.alljoyn.bus.samples.chat", signal = "askKey")
@@ -257,6 +263,34 @@ public class Service {
         return temp;
     }
 
+    public static void set_ask_key_ind(int ind) {
+        ask_key_ind = ind;
+    }
+    
+    public static void ask_key() throws InterruptedException, BusException{
+        String[] uni_names = new String[Alljoyn_unique_name.size()];
+        final String[] nick = new String[nickname.size()];
+        for(int i=0;i<nickname.size();i++){
+            uni_names[i]=Alljoyn_unique_name.get(i);
+            nick[i]=nickname.get(i);
+        }
+        java.awt.EventQueue.invokeLater(new Runnable() {
+            public void run() {
+                new AskKey(nick, 2, nickname.get(0)).setVisible(true);
+            }
+        });
+        while (ask_key_ind == -1 && running) {
+            if (ask_key_ind == -2) {
+                return;
+            }
+            Thread.sleep(100);
+        }
+        if (running) {
+            SignalEmitter emitter = new SignalEmitter(mySignalInterface, uni_names[ask_key_ind], mUseSessionId, SignalEmitter.GlobalBroadcast.Off);
+            ChatInterface usrInterface = emitter.getInterface(ChatInterface.class);
+            usrInterface.askKey(nickname.get(0));
+        }
+    }
     /**
      * Static method which runs the Service or Channel Creator The initial flow
      * is same a client, so please refer to the long comment in the client code.

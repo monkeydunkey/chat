@@ -14,8 +14,7 @@ import org.alljoyn.bus.annotation.BusMethod;
 @BusInterface (name = "org.alljoyn.bus.samples.GroupInterface")
 public interface GroupInterface {
     
-    @BusMethod
-    public double askKey()throws BusException;
+    
     @BusMethod
     public String[] getMem() throws BusException;
     @BusMethod 

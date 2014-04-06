@@ -71,10 +71,10 @@ public class App {
             }
             if(ser_cli == 4){
                 if(service_or_client==1){
-                    Service.set_running(false);
+                    Service.ask_key();
                 }
                 if(service_or_client==2){
-                    Client.set_running(false);
+                    Client.ask_key();
                 }
             }
         }

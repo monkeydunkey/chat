@@ -155,22 +155,26 @@ public class Client implements Runnable {
 
         @BusSignalHandler(iface = "org.alljoyn.bus.samples.chat", signal = "sendKey")
         public void sendKey(Double a) {
+            if(a==-1.0){
+                JOptionPane.showMessageDialog(null, "The device did not shared it's key");
+            }
+            else{
             keys[key_count] = a;
             key_count++;
+            }
         }
 
         @BusSignalHandler(iface = "org.alljoyn.bus.samples.chat", signal = "askKey")
         public void askkey(String name) throws BusException {
             SignalEmitter emitter = new SignalEmitter(mySignalInterface, name, mUseSessionId, SignalEmitter.GlobalBroadcast.Off);
-                ChatInterface usrInterface = emitter.getInterface(ChatInterface.class);
+            ChatInterface usrInterface = emitter.getInterface(ChatInterface.class);
             if (JOptionPane.showConfirmDialog(null,
                     "Are you sure to close this window?", "Really Closing?",
                     JOptionPane.YES_NO_OPTION,
                     JOptionPane.QUESTION_MESSAGE) == JOptionPane.YES_OPTION) {
-                
+
                 usrInterface.sendKey(key);
-            }
-            else{
+            } else {
                 usrInterface.sendKey(-1.0);
             }
 
@@ -257,9 +261,10 @@ public class Client implements Runnable {
         nickname = nick;
     }
 
-    public static void set_ask_key_ind(int ind){
-        ask_key_ind=ind;
+    public static void set_ask_key_ind(int ind) {
+        ask_key_ind = ind;
     }
+
     public static void ask_key() throws BusException, InterruptedException {
         String[] uni_names = mGroupInterface.getUni();
         final String[] nick = mGroupInterface.getMem();
@@ -275,9 +280,9 @@ public class Client implements Runnable {
             Thread.sleep(100);
         }
         if (running) {
-            SignalEmitter emitter = new SignalEmitter(mySignalInterface, uni, mUseSessionId, SignalEmitter.GlobalBroadcast.Off);
-        ChatInterface usrInterface = emitter.getInterface(ChatInterface.class);
-        usrInterface.askKey(nickname);
+            SignalEmitter emitter = new SignalEmitter(mySignalInterface, uni_names[ask_key_ind], mUseSessionId, SignalEmitter.GlobalBroadcast.Off);
+            ChatInterface usrInterface = emitter.getInterface(ChatInterface.class);
+            usrInterface.askKey(nickname);
         }
 
     }
