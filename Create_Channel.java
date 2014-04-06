@@ -9,7 +9,7 @@ import java.awt.Color;
 import java.awt.Component;
 import java.util.ArrayList;
 import javax.swing.JOptionPane;
-
+import java.util.Random;
 /**
  *
  * @author Himanshu
@@ -18,6 +18,11 @@ public class Create_Channel extends javax.swing.JFrame {
 
     public static String s;
     private static ArrayList<String> channels;
+    private static String[] ErrorList={"A monkey Threw a wrench in the gears. Please try again",
+                                       "Monkeys are attacking us again. Try again please",
+                                       "Pigs are flying.That seems to be reason for the crash",
+                                       "Looks like our app went for a vacation. Dont worry we shall bring it back.",
+                                       "The flying monkeys are here, we better hide. Dont worry it's only till our reinforcements arrive."};
 
     /**
      * Creates new form Create_Channel
@@ -44,6 +49,10 @@ public class Create_Channel extends javax.swing.JFrame {
         });
     }
 
+    public void error_occurred(){
+        Random rand=new Random();
+        JOptionPane.showMessageDialog(this, ErrorList[rand.nextInt(5)]);
+    }
     /**
      * This method is called from within the constructor to initialize the form.
      * WARNING: Do NOT modify this code. The content of this method is always

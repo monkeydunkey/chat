@@ -176,7 +176,7 @@ public class Client implements Runnable {
 
     //This method joins the channel selected by the user
     ///////There should be changes here if the GUI validates the usrs input first before passing it on to the back end
-    public static void joinChannel() {
+    public static void joinChannel() throws InterruptedException {
         SessionOpts sessionOpts = new SessionOpts(SessionOpts.TRAFFIC_MESSAGES, true, SessionOpts.PROXIMITY_ANY, SessionOpts.TRANSPORT_ANY);
 
         Mutable.IntegerValue sessionId = new Mutable.IntegerValue();
@@ -184,14 +184,14 @@ public class Client implements Runnable {
         mBus.enableConcurrentCallbacks();
         // method required which would
         short contactPort = CONTACT_PORT;
-        while (channel_selected == -1) {
+        while (channel_selected == -1 && running) {
             try {
                 Thread.sleep(100);
             } catch (InterruptedException e) {
                 System.out.println("Program interupted");
             }
         }
-        if (channel_selected == -2) {
+        if (channel_selected == -1) {
             return;
         }
 
@@ -199,6 +199,8 @@ public class Client implements Runnable {
         System.out.println(name);
         Status status = mBus.joinSession(NAME_PREFIX + "." + name, contactPort, sessionId, sessionOpts, new SessionListener());
         if (status != Status.OK) {
+            j1.error_occurred();
+            
             return;
         }
         System.out.println(String.format("BusAttachement.joinSession successful sessionId = %d", sessionId.value));
@@ -259,7 +261,8 @@ public class Client implements Runnable {
         channel_selected = -1;
         myInterface = null;
         mGroupInterface = null;
-
+        j1 = new Join_Channel(channels);
+        
         class MyBusListener extends BusListener {
 
             //This method is called whenever the listener discovers a new channel on the network
@@ -294,6 +297,8 @@ public class Client implements Runnable {
 
         Status status = mBus.connect();
         if (status != Status.OK) {
+            j1.error_occurred();
+            
             return;
         }
         System.out.println("BusAttachment.connect successful");
@@ -302,6 +307,8 @@ public class Client implements Runnable {
         status = mBus.registerBusObject(mySignalInterface, "/chatService");
         status = mBus.findAdvertisedName(NAME_PREFIX);
         if (status != Status.OK) {
+            j1.error_occurred();
+            
             return;
         }
 
@@ -310,6 +317,8 @@ public class Client implements Runnable {
 
         status = mBus.registerSignalHandlers(mySignalHandlers);
         if (status != Status.OK) {
+            j1.error_occurred();
+            
             return;
         }
 
@@ -319,6 +328,8 @@ public class Client implements Runnable {
 
         status = mBus.registerBusObject(mySampleService, "/chatService");
         if (status != Status.OK) {
+            j1.error_occurred();
+            
             return;
         }
         System.out.println("Method handler Registered");
@@ -329,7 +340,7 @@ public class Client implements Runnable {
             System.out.println("Program interupted");
         }
         
-        j1 = new Join_Channel(channels);
+        
         java.awt.EventQueue.invokeLater(new Runnable() {
             public void run() {
                 j1.setVisible(true);
@@ -338,6 +349,8 @@ public class Client implements Runnable {
         joinChannel();
         System.out.println("join channel");
         if (channel_selected == -2) {
+            j1.error_occurred();
+            
             return;
         }
         while (channel_joined != 2 && running) {
@@ -360,7 +373,14 @@ public class Client implements Runnable {
         }
         validate_copy = true;
         System.out.println("Client running");
-
+        
+        if(!running){
+        System.out.println("Client exiting");
+        mBus.disconnect();
+        App.on_close();
+        return;
+        }
+        
         String[] uni_names = mGroupInterface.getUni();
         String[] nick = mGroupInterface.getMem();
         for (int i = 0; i < nick.length; i++) {

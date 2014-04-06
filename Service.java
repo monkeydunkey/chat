@@ -66,7 +66,8 @@ public class Service {
     private static int channel_count = 0;
     private static Boolean channel_name_checked = false;
     private static Boolean running;
-
+    private static Create_Channel c1;
+    
     private static ChatInterface myInterface = null;
     private static SignalInterface mySignalInterface;
     static String channel_name = null;
@@ -247,7 +248,7 @@ public class Service {
         for (int i = 0; i < 100; i++) {
             keys[i] = -1;
         }
-
+        c1=new Create_Channel(channels);
         //mBus is the object which connects to the Alljoyn bus daemon
         mBus = new BusAttachment("org.alljoyn.bus.samples", BusAttachment.RemoteMessage.Receive);
 
@@ -257,6 +258,7 @@ public class Service {
 
         status = mBus.registerBusObject(mySignalInterface, "/chatService");
         if (status != Status.OK) {
+            c1.error_occurred();
             return;
         }
         System.out.println("BusAttachment.registerBusObject successful");
@@ -266,6 +268,7 @@ public class Service {
 
         status = mBus.connect();
         if (status != Status.OK) {
+            c1.error_occurred();
             return;
         }
         System.out.println("BusAttachment.connect successful on " + System.getProperty("org.alljoyn.bus.address"));
@@ -274,7 +277,7 @@ public class Service {
 
         status = mBus.registerSignalHandlers(mySignalHandlers);
         if (status != Status.OK) {
-
+            c1.error_occurred();
             return;
         }
         System.out.println("Signal Handler registered");
@@ -284,6 +287,7 @@ public class Service {
         status = mBus.registerBusObject(mySampleService, "/chatService");
         if (status != Status.OK) {
             System.out.println(status);
+            c1.error_occurred();
             return;
         }
         System.out.println("Method handler Registered");
@@ -338,13 +342,14 @@ public class Service {
                     }
                 });
         if (status != Status.OK) {
+            c1.error_occurred();
             return;
         }
         System.out.println("BusAttachment.bindSessionPort successful");
-
+        c1=new Create_Channel(channels);
         java.awt.EventQueue.invokeLater(new Runnable() {
             public void run() {
-                new Create_Channel(channels).setVisible(true);
+               c1.setVisible(true);
             }
         });
         while (channel_name == null && running) {
@@ -361,6 +366,7 @@ public class Service {
         int flags = 0; //do not use any request name flags
         status = mBus.requestName(wellKnownName, flags);
         if (status != Status.OK) {
+            c1.error_occurred();
             return;
         }
         System.out.println("BusAttachment.request 'com.my.well.known.name' successful");
@@ -369,6 +375,7 @@ public class Service {
         if (status != Status.OK) {
             System.out.println("Status = " + status);
             mBus.releaseName(wellKnownName);
+            c1.error_occurred();
             return;
         }
         System.out.println("BusAttachment.advertiseName 'com.my.well.known.name' successful");
