@@ -382,9 +382,18 @@ public class Client implements Runnable {
 
         // Channels Joined
         alljoynnick = mBus.getUniqueName();
-        
+        java.awt.EventQueue.invokeLater(new Runnable() {
+            public void run() {
+                new Enter_nickname().setVisible(true);
+            }
+        });
         while(nickname==null&&running){
             Thread.sleep(500);
+        }
+        myInterface.nickname(nickname, alljoynnick);
+        
+        if(running){
+            App.set_channel_nickname(channels.get(channel_selected+1), nickname);
         }
         
         validate_copy = true;

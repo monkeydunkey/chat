@@ -391,7 +391,11 @@ public class Service {
             return;
         }
         System.out.println("BusAttachment.advertiseName 'com.my.well.known.name' successful");
-
+        
+        if(running){
+            App.set_channel_nickname(channel_name,nickname.get(0));
+        }
+        
         try {
             while (!mSessionEstablished && running) {
                 Thread.sleep(10);

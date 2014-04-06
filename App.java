@@ -22,6 +22,10 @@ public class App {
         ser_cli = typ;
     }
 
+    public static void set_channel_nickname(String channel_name,String nickname){
+        gui.Set_channel_nick_name(channel_name, nickname);
+    }
+    
     public static void on_close(){
         service_or_client=0;
         gui.original_state();

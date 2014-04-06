@@ -6,6 +6,7 @@
 
 package org.alljoyn.bus.sample.chat;
 
+import java.awt.Color;
 import java.awt.Component;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -24,6 +25,8 @@ public class Enter_nickname extends javax.swing.JFrame {
     public Enter_nickname() {
         initComponents();
         final Component frame=this;
+        getContentPane().setBackground(Color.getHSBColor(0, 153, 102));
+        setTitle("Enter Nickname");
         this.addWindowListener(new java.awt.event.WindowAdapter() {
             @Override
             public void windowClosing(java.awt.event.WindowEvent windowEvent) {

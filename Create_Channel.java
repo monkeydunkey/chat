@@ -158,7 +158,7 @@ public class Create_Channel extends javax.swing.JFrame {
         String channel_name = jTextField1.getText();
         String nickname = jTextField2.getText();
         if (channel_name.equals("")) {
-            jLabel3.setText("                               Please Enter a name");
+            jLabel3.setText("                               Please enter something");
             jLabel3.setVisible(true);
         } else {
             if (channels.contains(channel_name)) {
