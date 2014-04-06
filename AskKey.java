@@ -12,6 +12,7 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.imageio.ImageIO;
 import javax.swing.DefaultListModel;
+import javax.swing.JFrame;
 import org.alljoyn.bus.BusException;
 
 /**
@@ -46,11 +47,29 @@ public class AskKey extends javax.swing.JFrame {
             d1.addElement(list[i]);
             System.out.println(list[i]);
         }
-        if(jList1==null){System.out.println("sahoo wtf");}
+        
         jList1.setModel(d1);
         setTitle("SMART JOYN");
         jLabel3.setEnabled(false);
         setResizable(false);
+        
+        this.addWindowListener(new java.awt.event.WindowAdapter() {
+            @Override
+            public void windowClosing(java.awt.event.WindowEvent windowEvent) {
+                /*if (JOptionPane.showConfirmDialog(frame,
+                        "Are you sure to close this window?", "Really Closing?",
+                        JOptionPane.YES_NO_OPTION,
+                        JOptionPane.QUESTION_MESSAGE) == JOptionPane.YES_OPTION) {
+                    System.exit(0);
+                }*/
+                if (ser_cli == 1) {
+                Service.set_ask_key_ind(-2);
+            } else {
+                Client.set_ask_key_ind(-2);
+            }
+            
+            }
+        });
     }
 
     /**
@@ -70,7 +89,7 @@ public class AskKey extends javax.swing.JFrame {
         jScrollPane1 = new javax.swing.JScrollPane();
         jList1 = new javax.swing.JList();
 
-        setDefaultCloseOperation(javax.swing.WindowConstants.DO_NOTHING_ON_CLOSE);
+        setDefaultCloseOperation(javax.swing.WindowConstants.DISPOSE_ON_CLOSE);
 
         jLabel1.setFont(new java.awt.Font("Arial Black", 3, 20)); // NOI18N
         jLabel1.setText("Ask Key");
@@ -161,6 +180,7 @@ public class AskKey extends javax.swing.JFrame {
             } else {
                 Client.set_ask_key_ind(ind);
             }
+            this.dispose();
         }
     }//GEN-LAST:event_jButton1ActionPerformed
 

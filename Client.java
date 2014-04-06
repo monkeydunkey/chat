@@ -155,6 +155,7 @@ public class Client implements Runnable {
 
         @BusSignalHandler(iface = "org.alljoyn.bus.samples.chat", signal = "sendKey")
         public void sendKey(Double a) {
+            System.out.println("key recieved");
             if(a==-1.0){
                 JOptionPane.showMessageDialog(null, "The device did not shared it's key");
             }
@@ -266,8 +267,10 @@ public class Client implements Runnable {
     }
 
     public static void ask_key() throws BusException, InterruptedException {
+        ask_key_ind=-1;
         String[] uni_names = mGroupInterface.getUni();
         final String[] nick = mGroupInterface.getMem();
+        System.out.println("it's called");
         java.awt.EventQueue.invokeLater(new Runnable() {
             public void run() {
                 new AskKey(nick, 2, nickname).setVisible(true);
@@ -279,10 +282,12 @@ public class Client implements Runnable {
             }
             Thread.sleep(100);
         }
+        if(ask_key_ind == -2){return;}
         if (running) {
             SignalEmitter emitter = new SignalEmitter(mySignalInterface, uni_names[ask_key_ind], mUseSessionId, SignalEmitter.GlobalBroadcast.Off);
             ChatInterface usrInterface = emitter.getInterface(ChatInterface.class);
-            usrInterface.askKey(nickname);
+            usrInterface.askKey(alljoynnick);
+            
         }
 
     }

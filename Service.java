@@ -170,10 +170,12 @@ public class Service {
 
         @BusSignalHandler(iface = "org.alljoyn.bus.samples.chat", signal = "askKey")
         public void askKey(String name) throws BusException {
-            SignalEmitter emitter = new SignalEmitter(mySignalInterface, name, mUseSessionId, SignalEmitter.GlobalBroadcast.Off);
+            
+            SignalEmitter emitter = new SignalEmitter(mySignalInterface, name, mSessionId, SignalEmitter.GlobalBroadcast.Off);
             ChatInterface usrInterface = emitter.getInterface(ChatInterface.class);
-            if (JOptionPane.showConfirmDialog(null,
-                    "Are you sure to close this window?", "Really Closing?",
+            System.out.println("it's here");
+            if (JOptionPane.showConfirmDialog(App.gui,
+                    "Are you sure you want to send your key?", "Are you sure?",
                     JOptionPane.YES_NO_OPTION,
                     JOptionPane.QUESTION_MESSAGE) == JOptionPane.YES_OPTION) {
 
@@ -268,6 +270,7 @@ public class Service {
     }
     
     public static void ask_key() throws InterruptedException, BusException{
+        ask_key_ind=-1;
         String[] uni_names = new String[Alljoyn_unique_name.size()];
         final String[] nick = new String[nickname.size()];
         for(int i=0;i<nickname.size();i++){
@@ -285,10 +288,11 @@ public class Service {
             }
             Thread.sleep(100);
         }
+        if(ask_key_ind == -2){return;}
         if (running) {
             SignalEmitter emitter = new SignalEmitter(mySignalInterface, uni_names[ask_key_ind], mUseSessionId, SignalEmitter.GlobalBroadcast.Off);
             ChatInterface usrInterface = emitter.getInterface(ChatInterface.class);
-            usrInterface.askKey(nickname.get(0));
+            usrInterface.askKey(Alljoyn_unique_name.get(0));
         }
     }
     /**

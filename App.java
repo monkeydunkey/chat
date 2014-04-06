@@ -76,6 +76,7 @@ public class App {
                 if(service_or_client==2){
                     Client.ask_key();
                 }
+                ser_cli=0;
             }
         }
     }
