@@ -21,13 +21,7 @@ public class Join_Channel extends javax.swing.JFrame {
     /**
      * Creates new form Join_Channel
      */
-    private static String[] ErrorList={"A monkey Threw a wrench in the gears. Please try again",
-                                       "Monkeys are attacking us again. Try again please",
-                                       "Pigs are flying.That seems to be reason for the crash",
-                                       "Looks like our app went for a vacation. Dont worry we shall bring it back.",
-                                       "The flying monkeys are here, we better hide. Dont worry it's only till our reinforcements arrive."};
-
-    public Join_Channel(final ArrayList<String> s) {
+        public Join_Channel(final ArrayList<String> s) {
         initComponents();
         getContentPane().setBackground(Color.getHSBColor(0, 153, 102));
         setTitle("Join channel");
@@ -54,10 +48,7 @@ public class Join_Channel extends javax.swing.JFrame {
         });
     }
     
-    public void error_occurred(){
-    Random rand=new Random();
-    JOptionPane.showMessageDialog(this, ErrorList[rand.nextInt(5)]);
-    }
+    
     
     public void update_list(final ArrayList<String> s) {
         DefaultListModel d1=new DefaultListModel();

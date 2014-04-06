@@ -5,6 +5,7 @@ package org.alljoyn.bus.sample.chat;
  * @author Shashank
  */
 import java.util.ArrayList;
+import java.util.Random;
 import org.alljoyn.bus.BusAttachment;
 import org.alljoyn.bus.BusException;
 import org.alljoyn.bus.BusListener;
@@ -18,6 +19,7 @@ import org.alljoyn.bus.MessageContext;
 import org.alljoyn.bus.SignalEmitter;
 
 import java.util.Scanner;
+import javax.swing.JOptionPane;
 import org.alljoyn.bus.ProxyBusObject;
 
 public class Client implements Runnable {
@@ -65,7 +67,12 @@ public class Client implements Runnable {
     private static GroupInterface mGroupInterface;
     static Methodhandler myGroup = new Methodhandler();
     static Join_Channel j1;
-
+    private static Random rand;
+    private static String[] ErrorList = {"A monkey Threw a wrench in the gears. Please try again",
+        "Monkeys are attacking us again. Try again please",
+        "Pigs are flying.That seems to be reason for the crash",
+        "Looks like our app went for a vacation. Dont worry we shall bring it back.",
+        "The flying monkeys are here, we better hide. Dont worry it's only till our reinforcements arrive."};
     ///End of variable Declarations
     @Override
     public void run() {
@@ -189,6 +196,7 @@ public class Client implements Runnable {
                 Thread.sleep(100);
             } catch (InterruptedException e) {
                 System.out.println("Program interupted");
+                JOptionPane.showMessageDialog(null,ErrorList[rand.nextInt(5)]);
             }
         }
         if (channel_selected == -1) {
@@ -199,7 +207,7 @@ public class Client implements Runnable {
         System.out.println(name);
         Status status = mBus.joinSession(NAME_PREFIX + "." + name, contactPort, sessionId, sessionOpts, new SessionListener());
         if (status != Status.OK) {
-            j1.error_occurred();
+            JOptionPane.showMessageDialog(null,ErrorList[rand.nextInt(5)]);
             
             return;
         }
@@ -217,9 +225,17 @@ public class Client implements Runnable {
     public static void update_channel() {
         j1.update_list(channels);
     }
+    
+    public static String[] get_channel_nick() throws BusException{
+        return mGroupInterface.getMem();
+    }
 
     public static void set_running(Boolean run) {
         running = run;
+    }
+    
+    public static void set_nick(String nick){
+        nickname=nick;
     }
 
     /**
@@ -250,6 +266,7 @@ public class Client implements Runnable {
      *
      */
     public static void run_client(Boolean run) throws BusException, InterruptedException {
+        //JOptionPane.showMessageDialog(null, "this is test");
         running = run;
         channels = new ArrayList<String>();
         channels.add("nan");
@@ -262,7 +279,8 @@ public class Client implements Runnable {
         myInterface = null;
         mGroupInterface = null;
         j1 = new Join_Channel(channels);
-        
+        nickname=null;
+        rand =new Random();
         class MyBusListener extends BusListener {
 
             //This method is called whenever the listener discovers a new channel on the network
@@ -297,9 +315,8 @@ public class Client implements Runnable {
 
         Status status = mBus.connect();
         if (status != Status.OK) {
-            j1.error_occurred();
-            
-            return;
+            JOptionPane.showMessageDialog(null,ErrorList[rand.nextInt(5)]);
+             return;
         }
         System.out.println("BusAttachment.connect successful");
 
@@ -307,7 +324,7 @@ public class Client implements Runnable {
         status = mBus.registerBusObject(mySignalInterface, "/chatService");
         status = mBus.findAdvertisedName(NAME_PREFIX);
         if (status != Status.OK) {
-            j1.error_occurred();
+            JOptionPane.showMessageDialog(null,ErrorList[rand.nextInt(5)]);
             
             return;
         }
@@ -317,7 +334,7 @@ public class Client implements Runnable {
 
         status = mBus.registerSignalHandlers(mySignalHandlers);
         if (status != Status.OK) {
-            j1.error_occurred();
+            JOptionPane.showMessageDialog(null,ErrorList[rand.nextInt(5)]);
             
             return;
         }
@@ -328,7 +345,7 @@ public class Client implements Runnable {
 
         status = mBus.registerBusObject(mySampleService, "/chatService");
         if (status != Status.OK) {
-            j1.error_occurred();
+            JOptionPane.showMessageDialog(null,ErrorList[rand.nextInt(5)]);
             
             return;
         }
@@ -338,6 +355,7 @@ public class Client implements Runnable {
             Thread.sleep(1000);
         } catch (InterruptedException e) {
             System.out.println("Program interupted");
+            JOptionPane.showMessageDialog(null,ErrorList[rand.nextInt(5)]);
         }
         
         
@@ -349,28 +367,26 @@ public class Client implements Runnable {
         joinChannel();
         System.out.println("join channel");
         if (channel_selected == -2) {
-            j1.error_occurred();
+            JOptionPane.showMessageDialog(null,ErrorList[rand.nextInt(5)]);
             
             return;
         }
         while (channel_joined != 2 && running) {
             try {
-                Thread.sleep(1000);
+                Thread.sleep(500);
             } catch (InterruptedException e) {
                 System.out.println("Program interupted");
+                JOptionPane.showMessageDialog(null,ErrorList[rand.nextInt(5)]);
             }
         }
 
         // Channels Joined
         alljoynnick = mBus.getUniqueName();
-        Scanner scanner = new Scanner(System.in);
-        while (!validate && running) {
-            System.out.println("Please enter a nick name");
-            nickname = scanner.nextLine();
-
-            myInterface.nickname(nickname, alljoynnick);
-            Thread.sleep(1000);
+        
+        while(nickname==null&&running){
+            Thread.sleep(500);
         }
+        
         validate_copy = true;
         System.out.println("Client running");
         
