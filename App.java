@@ -69,6 +69,14 @@ public class App {
                 service_or_client=0;
                 ser_cli=0;
             }
+            if(ser_cli == 4){
+                if(service_or_client==1){
+                    Service.set_running(false);
+                }
+                if(service_or_client==2){
+                    Client.set_running(false);
+                }
+            }
         }
     }
 }

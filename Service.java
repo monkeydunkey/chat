@@ -69,20 +69,18 @@ public class Service {
     private static Boolean channel_name_checked = false;
     private static Boolean running;
     private static Create_Channel c1;
-    
+
     private static ChatInterface myInterface = null;
     private static SignalInterface mySignalInterface;
     static String channel_name = null;
     private static Random rand;
-    private static String[] ErrorList={"A monkey Threw a wrench in the gears. Please try again",
-                                       "Monkeys are attacking us again. Try again please",
-                                       "Pigs are flying.That seems to be reason for the crash",
-                                       "Looks like our app went for a vacation. Dont worry we shall bring it back.",
-                                       "The flying monkeys are here, we better hide. Dont worry it's only till our reinforcements arrive."};
-
+    private static String[] ErrorList = {"A monkey Threw a wrench in the gears. Please try again",
+        "Monkeys are attacking us again. Try again please",
+        "Pigs are flying.That seems to be reason for the crash",
+        "Looks like our app went for a vacation. Dont worry we shall bring it back.",
+        "The flying monkeys are here, we better hide. Dont worry it's only till our reinforcements arrive."};
 
     //End of Variable Declarations
-
     // The signal interface is used to send data using alljoyn's signals
     public static class SignalInterface implements ChatInterface, BusObject {
 
@@ -103,6 +101,10 @@ public class Service {
         //Signal via which users can send their private keys to other devices, thus enabling them to receive their notifications
         @Override
         public void sendKey(Double a) throws BusException {
+        }
+
+        @Override
+        public void askKey(String s) throws BusException {
         }
     }
 
@@ -159,6 +161,21 @@ public class Service {
             keys[key_count] = a;
             key_count++;
         }
+
+        @BusSignalHandler(iface = "org.alljoyn.bus.samples.chat", signal = "askKey")
+        public void askKey(String name) throws BusException {
+            SignalEmitter emitter = new SignalEmitter(mySignalInterface, name, mUseSessionId, SignalEmitter.GlobalBroadcast.Off);
+            ChatInterface usrInterface = emitter.getInterface(ChatInterface.class);
+            if (JOptionPane.showConfirmDialog(null,
+                    "Are you sure to close this window?", "Really Closing?",
+                    JOptionPane.YES_NO_OPTION,
+                    JOptionPane.QUESTION_MESSAGE) == JOptionPane.YES_OPTION) {
+
+                usrInterface.sendKey(key);
+            } else {
+                usrInterface.sendKey(-1.0);
+            }
+        }
     }
 
     //The MethodHandler provides implemention for the GroupInterface which contains declarations for alljoyn methods
@@ -171,11 +188,6 @@ public class Service {
         }
 
         //Method via which a device can ask from other device for its key
-        @Override
-        public synchronized double askKey() {
-            return key;
-        }
-
         //Method via which a device can ask from the service/channel creator for the user assigned nicknames of the devices connected 
         @Override
         public synchronized String[] getMem() throws BusException {
@@ -228,12 +240,21 @@ public class Service {
     public static void Set_Channel_Name(String text) {
         channel_name = text;
     }
-    public static void Set_nickname(String name){
+
+    public static void Set_nickname(String name) {
         nickname.add(name);
     }
 
     public static void set_running(Boolean run) {
         running = run;
+    }
+
+    public static String[] get_device_list() {
+        String[] temp = new String[nickname.size()];
+        for (int i = 0; i < nickname.size(); i++) {
+            temp[i] = nickname.get(i);
+        }
+        return temp;
     }
 
     /**
@@ -257,12 +278,12 @@ public class Service {
         channels.add("nan");
         Alljoyn_unique_name = new ArrayList<String>();
         nickname = new ArrayList<String>();
-        rand=new Random();
+        rand = new Random();
         //Initializing all the nicknames
         for (int i = 0; i < 100; i++) {
             keys[i] = -1;
         }
-        c1=new Create_Channel(channels);
+        c1 = new Create_Channel(channels);
         //mBus is the object which connects to the Alljoyn bus daemon
         mBus = new BusAttachment("org.alljoyn.bus.samples", BusAttachment.RemoteMessage.Receive);
 
@@ -272,7 +293,7 @@ public class Service {
 
         status = mBus.registerBusObject(mySignalInterface, "/chatService");
         if (status != Status.OK) {
-            JOptionPane.showMessageDialog(null,ErrorList[rand.nextInt(5)]);
+            JOptionPane.showMessageDialog(null, ErrorList[rand.nextInt(5)]);
             return;
         }
         System.out.println("BusAttachment.registerBusObject successful");
@@ -282,7 +303,7 @@ public class Service {
 
         status = mBus.connect();
         if (status != Status.OK) {
-            JOptionPane.showMessageDialog(null,ErrorList[rand.nextInt(5)]);
+            JOptionPane.showMessageDialog(null, ErrorList[rand.nextInt(5)]);
             return;
         }
         System.out.println("BusAttachment.connect successful on " + System.getProperty("org.alljoyn.bus.address"));
@@ -291,7 +312,7 @@ public class Service {
 
         status = mBus.registerSignalHandlers(mySignalHandlers);
         if (status != Status.OK) {
-            JOptionPane.showMessageDialog(null,ErrorList[rand.nextInt(5)]);
+            JOptionPane.showMessageDialog(null, ErrorList[rand.nextInt(5)]);
             return;
         }
         System.out.println("Signal Handler registered");
@@ -301,7 +322,7 @@ public class Service {
         status = mBus.registerBusObject(mySampleService, "/chatService");
         if (status != Status.OK) {
             System.out.println(status);
-            JOptionPane.showMessageDialog(null,ErrorList[rand.nextInt(5)]);
+            JOptionPane.showMessageDialog(null, ErrorList[rand.nextInt(5)]);
             return;
         }
         System.out.println("Method handler Registered");
@@ -309,7 +330,6 @@ public class Service {
         mBus.findAdvertisedName(NAME_PREFIX);
         //Asking the user to set his/her nickname
         Alljoyn_unique_name.add(mBus.getUniqueName());
-        
 
         Mutable.ShortValue contactPort = new Mutable.ShortValue(CONTACT_PORT);
 
@@ -345,7 +365,7 @@ public class Service {
                         mBus.setSessionListener(id, new SessionListener() {
                             public void sessionMemberRemoved(int sessionId, String uniqueName) {
                                 System.out.println("member left");
-                                int i=Alljoyn_unique_name.indexOf(uniqueName);
+                                int i = Alljoyn_unique_name.indexOf(uniqueName);
                                 Alljoyn_unique_name.remove(i);
                                 nickname.remove(i);
                             }
@@ -354,21 +374,21 @@ public class Service {
                     }
                 });
         if (status != Status.OK) {
-            JOptionPane.showMessageDialog(null,ErrorList[rand.nextInt(5)]);
+            JOptionPane.showMessageDialog(null, ErrorList[rand.nextInt(5)]);
             return;
         }
         System.out.println("BusAttachment.bindSessionPort successful");
-        c1=new Create_Channel(channels);
+        c1 = new Create_Channel(channels);
         java.awt.EventQueue.invokeLater(new Runnable() {
             public void run() {
-               c1.setVisible(true);
+                c1.setVisible(true);
             }
         });
         while (channel_name == null && running) {
             try {
                 Thread.sleep(100);
             } catch (Exception e) {
-                JOptionPane.showMessageDialog(null,ErrorList[rand.nextInt(5)]);
+                JOptionPane.showMessageDialog(null, ErrorList[rand.nextInt(5)]);
             }
         }
 
@@ -378,7 +398,7 @@ public class Service {
         int flags = 0; //do not use any request name flags
         status = mBus.requestName(wellKnownName, flags);
         if (status != Status.OK) {
-            JOptionPane.showMessageDialog(null,ErrorList[rand.nextInt(5)]);
+            JOptionPane.showMessageDialog(null, ErrorList[rand.nextInt(5)]);
             return;
         }
         System.out.println("BusAttachment.request 'com.my.well.known.name' successful");
@@ -387,15 +407,15 @@ public class Service {
         if (status != Status.OK) {
             System.out.println("Status = " + status);
             mBus.releaseName(wellKnownName);
-            JOptionPane.showMessageDialog(null,ErrorList[rand.nextInt(5)]);
+            JOptionPane.showMessageDialog(null, ErrorList[rand.nextInt(5)]);
             return;
         }
         System.out.println("BusAttachment.advertiseName 'com.my.well.known.name' successful");
-        
-        if(running){
-            App.set_channel_nickname(channel_name,nickname.get(0));
+
+        if (running) {
+            App.set_channel_nickname(channel_name, nickname.get(0));
         }
-        
+
         try {
             while (!mSessionEstablished && running) {
                 Thread.sleep(10);
@@ -411,7 +431,7 @@ public class Service {
             }
         } catch (InterruptedException ex) {
             System.out.println("Interrupted");
-            JOptionPane.showMessageDialog(null,ErrorList[rand.nextInt(5)]);
+            JOptionPane.showMessageDialog(null, ErrorList[rand.nextInt(5)]);
         }
         System.out.println("Service exiting");
         mBus.cancelAdvertiseName(wellKnownName, SessionOpts.TRANSPORT_ANY);

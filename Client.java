@@ -55,6 +55,7 @@ public class Client implements Runnable {
     private static String nickname;                //Device nickname that the user has chosen
     private static String alljoynnick;              //Device nickanem that Alljoyn provides
     private static Boolean running;
+    private static int ask_key_ind = -1;
 
     //We can change to a single variable wait for android implementation to be complete
     private static boolean validate = false;
@@ -73,6 +74,7 @@ public class Client implements Runnable {
         "Pigs are flying.That seems to be reason for the crash",
         "Looks like our app went for a vacation. Dont worry we shall bring it back.",
         "The flying monkeys are here, we better hide. Dont worry it's only till our reinforcements arrive."};
+
     ///End of variable Declarations
     @Override
     public void run() {
@@ -102,6 +104,11 @@ public class Client implements Runnable {
         //Signal via which users can send their private keys to other devices, thus enabling them to receive their notifications
         @Override
         public void sendKey(Double a) throws BusException {
+
+        }
+
+        @Override
+        public void askKey(String s) throws BusException {
 
         }
     }
@@ -151,15 +158,27 @@ public class Client implements Runnable {
             keys[key_count] = a;
             key_count++;
         }
+
+        @BusSignalHandler(iface = "org.alljoyn.bus.samples.chat", signal = "askKey")
+        public void askkey(String name) throws BusException {
+            SignalEmitter emitter = new SignalEmitter(mySignalInterface, name, mUseSessionId, SignalEmitter.GlobalBroadcast.Off);
+                ChatInterface usrInterface = emitter.getInterface(ChatInterface.class);
+            if (JOptionPane.showConfirmDialog(null,
+                    "Are you sure to close this window?", "Really Closing?",
+                    JOptionPane.YES_NO_OPTION,
+                    JOptionPane.QUESTION_MESSAGE) == JOptionPane.YES_OPTION) {
+                
+                usrInterface.sendKey(key);
+            }
+            else{
+                usrInterface.sendKey(-1.0);
+            }
+
+        }
     }
 
     //The MethodHandler provides implemention for the GroupInterface which contains declarations for alljoyn methods
     public static class Methodhandler implements GroupInterface, BusObject {
-
-        // Here only askKey is implemented as Client does not have the member list
-        public synchronized double askKey() {
-            return key;
-        }
 
         public synchronized String[] getMem() throws BusException {
             throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
@@ -196,19 +215,19 @@ public class Client implements Runnable {
                 Thread.sleep(100);
             } catch (InterruptedException e) {
                 System.out.println("Program interupted");
-                JOptionPane.showMessageDialog(null,ErrorList[rand.nextInt(5)]);
+                JOptionPane.showMessageDialog(null, ErrorList[rand.nextInt(5)]);
             }
         }
         if (channel_selected == -1) {
             return;
         }
 
-        String name = channels.get(channel_selected+1);
+        String name = channels.get(channel_selected + 1);
         System.out.println(name);
         Status status = mBus.joinSession(NAME_PREFIX + "." + name, contactPort, sessionId, sessionOpts, new SessionListener());
         if (status != Status.OK) {
-            JOptionPane.showMessageDialog(null,ErrorList[rand.nextInt(5)]);
-            
+            JOptionPane.showMessageDialog(null, ErrorList[rand.nextInt(5)]);
+
             return;
         }
         System.out.println(String.format("BusAttachement.joinSession successful sessionId = %d", sessionId.value));
@@ -218,24 +237,49 @@ public class Client implements Runnable {
         myInterface = emitter.getInterface(ChatInterface.class);
         mProxyObj = mBus.getProxyBusObject(NAME_PREFIX + "." + name, "/chatService", sessionId.value, new Class<?>[]{GroupInterface.class});
         mGroupInterface = mProxyObj.getInterface(GroupInterface.class);
-        
+
         channel_joined = 2;
     }
 
     public static void update_channel() {
         j1.update_list(channels);
     }
-    
-    public static String[] get_channel_nick() throws BusException{
+
+    public static String[] get_channel_nick() throws BusException {
         return mGroupInterface.getMem();
     }
 
     public static void set_running(Boolean run) {
         running = run;
     }
-    
-    public static void set_nick(String nick){
-        nickname=nick;
+
+    public static void set_nick(String nick) {
+        nickname = nick;
+    }
+
+    public static void set_ask_key_ind(int ind){
+        ask_key_ind=ind;
+    }
+    public static void ask_key() throws BusException, InterruptedException {
+        String[] uni_names = mGroupInterface.getUni();
+        final String[] nick = mGroupInterface.getMem();
+        java.awt.EventQueue.invokeLater(new Runnable() {
+            public void run() {
+                new AskKey(nick, 2, nickname).setVisible(true);
+            }
+        });
+        while (ask_key_ind == -1 && running) {
+            if (ask_key_ind == -2) {
+                return;
+            }
+            Thread.sleep(100);
+        }
+        if (running) {
+            SignalEmitter emitter = new SignalEmitter(mySignalInterface, uni, mUseSessionId, SignalEmitter.GlobalBroadcast.Off);
+        ChatInterface usrInterface = emitter.getInterface(ChatInterface.class);
+        usrInterface.askKey(nickname);
+        }
+
     }
 
     /**
@@ -271,7 +315,7 @@ public class Client implements Runnable {
         channels = new ArrayList<String>();
         channels.add("nan");
         for (int i = 0; i < 100; i++) {
-            
+
             keys[i] = -1;
         }
         channel_count = 0;
@@ -279,15 +323,15 @@ public class Client implements Runnable {
         myInterface = null;
         mGroupInterface = null;
         j1 = new Join_Channel(channels);
-        nickname=null;
-        rand =new Random();
+        nickname = null;
+        rand = new Random();
         class MyBusListener extends BusListener {
 
             //This method is called whenever the listener discovers a new channel on the network
             public void foundAdvertisedName(String name, short transport, String namePrefix) {
                 System.out.println(String.format("BusListener.foundAdvertisedName(%s, %d, %s)", name, transport, namePrefix));
                 channels.add(name.substring(29));
-                
+
                 channel_detected = 1;
             }
 
@@ -296,15 +340,15 @@ public class Client implements Runnable {
                     System.out.println("BusAttachement.nameOwnerChagned(" + busName + ", " + previousOwner + ", " + newOwner);
                 }
             }
-            
+
             public void lostAdvertisedName(String name, short transport, String namePrefix) {
                 String channel_name = name.substring(29);
-                if(channels.contains(channel_name)){
+                if (channels.contains(channel_name)) {
                     System.out.println("LostAdvertisedName " + name);
                     channels.remove(channel_name);
                     System.out.println(channels.size());
                 }
-            } 
+            }
 
         }
 
@@ -315,8 +359,8 @@ public class Client implements Runnable {
 
         Status status = mBus.connect();
         if (status != Status.OK) {
-            JOptionPane.showMessageDialog(null,ErrorList[rand.nextInt(5)]);
-             return;
+            JOptionPane.showMessageDialog(null, ErrorList[rand.nextInt(5)]);
+            return;
         }
         System.out.println("BusAttachment.connect successful");
 
@@ -324,8 +368,8 @@ public class Client implements Runnable {
         status = mBus.registerBusObject(mySignalInterface, "/chatService");
         status = mBus.findAdvertisedName(NAME_PREFIX);
         if (status != Status.OK) {
-            JOptionPane.showMessageDialog(null,ErrorList[rand.nextInt(5)]);
-            
+            JOptionPane.showMessageDialog(null, ErrorList[rand.nextInt(5)]);
+
             return;
         }
 
@@ -334,8 +378,8 @@ public class Client implements Runnable {
 
         status = mBus.registerSignalHandlers(mySignalHandlers);
         if (status != Status.OK) {
-            JOptionPane.showMessageDialog(null,ErrorList[rand.nextInt(5)]);
-            
+            JOptionPane.showMessageDialog(null, ErrorList[rand.nextInt(5)]);
+
             return;
         }
 
@@ -345,20 +389,19 @@ public class Client implements Runnable {
 
         status = mBus.registerBusObject(mySampleService, "/chatService");
         if (status != Status.OK) {
-            JOptionPane.showMessageDialog(null,ErrorList[rand.nextInt(5)]);
-            
+            JOptionPane.showMessageDialog(null, ErrorList[rand.nextInt(5)]);
+
             return;
         }
         System.out.println("Method handler Registered");
-        
+
         try {
             Thread.sleep(1000);
         } catch (InterruptedException e) {
             System.out.println("Program interupted");
-            JOptionPane.showMessageDialog(null,ErrorList[rand.nextInt(5)]);
+            JOptionPane.showMessageDialog(null, ErrorList[rand.nextInt(5)]);
         }
-        
-        
+
         java.awt.EventQueue.invokeLater(new Runnable() {
             public void run() {
                 j1.setVisible(true);
@@ -367,8 +410,8 @@ public class Client implements Runnable {
         joinChannel();
         System.out.println("join channel");
         if (channel_selected == -2) {
-            JOptionPane.showMessageDialog(null,ErrorList[rand.nextInt(5)]);
-            
+            JOptionPane.showMessageDialog(null, ErrorList[rand.nextInt(5)]);
+
             return;
         }
         while (channel_joined != 2 && running) {
@@ -376,7 +419,7 @@ public class Client implements Runnable {
                 Thread.sleep(500);
             } catch (InterruptedException e) {
                 System.out.println("Program interupted");
-                JOptionPane.showMessageDialog(null,ErrorList[rand.nextInt(5)]);
+                JOptionPane.showMessageDialog(null, ErrorList[rand.nextInt(5)]);
             }
         }
 
@@ -387,25 +430,25 @@ public class Client implements Runnable {
                 new Enter_nickname().setVisible(true);
             }
         });
-        while(nickname==null&&running){
+        while (nickname == null && running) {
             Thread.sleep(500);
         }
         myInterface.nickname(nickname, alljoynnick);
-        
-        if(running){
-            App.set_channel_nickname(channels.get(channel_selected+1), nickname);
+
+        if (running) {
+            App.set_channel_nickname(channels.get(channel_selected + 1), nickname);
         }
-        
+
         validate_copy = true;
         System.out.println("Client running");
-        
-        if(!running){
-        System.out.println("Client exiting");
-        mBus.disconnect();
-        App.on_close();
-        return;
+
+        if (!running) {
+            System.out.println("Client exiting");
+            mBus.disconnect();
+            App.on_close();
+            return;
         }
-        
+
         String[] uni_names = mGroupInterface.getUni();
         String[] nick = mGroupInterface.getMem();
         for (int i = 0; i < nick.length; i++) {
