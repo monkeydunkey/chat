@@ -3,16 +3,17 @@
  * To change this template file, choose Tools | Templates
  * and open the template in the editor.
  */
+
 package org.alljoyn.bus.sample.chat;
 
+import java.awt.Dimension;
+import java.awt.Toolkit;
 import java.awt.image.BufferedImage;
 import java.io.IOException;
-import java.util.ArrayList;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.imageio.ImageIO;
 import javax.swing.DefaultListModel;
-import javax.swing.JFrame;
 import org.alljoyn.bus.BusException;
 
 /**
@@ -21,39 +22,36 @@ import org.alljoyn.bus.BusException;
  */
 public class AskKey extends javax.swing.JFrame {
 
-    /**
-     * Creates new form AskKey
-     */
     private static DefaultListModel d1;
     private int ser_cli = 0;              //1 is for service 2 for client
     String caller_name;
-
+    /**
+     * Creates new form AskKey
+     */
     public AskKey(String[] list, int j, String name) {
-        
-        BufferedImage bf1, bf2;
+        BufferedImage bf1,bf2;
         ser_cli = j;
         caller_name = name;
-        try {
-            bf1 = ImageIO.read(getClass().getResource("history.jpg"));
-            this.setContentPane(new backImage(bf1));
-            bf2 = ImageIO.read(getClass().getResource("icon3copy1.jpg"));
-            setIconImage(bf2);
-        } catch (IOException e) {
+        try{
+        bf1 = ImageIO.read(getClass().getResource("history.jpg"));
+        this.setContentPane(new backImage(bf1));
+        bf2 = ImageIO.read(getClass().getResource("icon3copy1.jpg"));
+        setIconImage(bf2);
+        } catch(IOException e){
             e.printStackTrace();
         }
-        initComponents();
-        d1 = new DefaultListModel();
+         initComponents();
+          Dimension dim = Toolkit.getDefaultToolkit().getScreenSize();
+    this.setLocation(dim.width/2-this.getSize().width/2, dim.height/2-this.getSize().height/2);
+         d1 = new DefaultListModel();
         for (int i = 0; i < list.length; i++) {
             d1.addElement(list[i]);
             System.out.println(list[i]);
         }
-        
-        jList1.setModel(d1);
-        setTitle("SMART JOYN");
-        jLabel3.setEnabled(false);
-        setResizable(false);
-        
-        this.addWindowListener(new java.awt.event.WindowAdapter() {
+        jList2.setModel(d1);
+        setTitle("Ask Key");
+       jLabel3.setEnabled(false);
+       this.addWindowListener(new java.awt.event.WindowAdapter() {
             @Override
             public void windowClosing(java.awt.event.WindowEvent windowEvent) {
                 /*if (JOptionPane.showConfirmDialog(frame,
@@ -70,6 +68,8 @@ public class AskKey extends javax.swing.JFrame {
             
             }
         });
+       // setSize(550,420);
+        setResizable(false);
     }
 
     /**
@@ -86,19 +86,24 @@ public class AskKey extends javax.swing.JFrame {
         jButton1 = new javax.swing.JButton();
         jButton2 = new javax.swing.JButton();
         jLabel3 = new javax.swing.JLabel();
-        jScrollPane1 = new javax.swing.JScrollPane();
-        jList1 = new javax.swing.JList();
+        jScrollPane2 = new javax.swing.JScrollPane();
+        jList2 = new javax.swing.JList();
 
         setDefaultCloseOperation(javax.swing.WindowConstants.DISPOSE_ON_CLOSE);
 
-        jLabel1.setFont(new java.awt.Font("Arial Black", 3, 20)); // NOI18N
+        jLabel1.setFont(new java.awt.Font("Arial Black", 3, 24)); // NOI18N
+        jLabel1.setForeground(new java.awt.Color(51, 51, 255));
         jLabel1.setText("Ask Key");
 
         jLabel2.setFont(new java.awt.Font("Arial Black", 3, 18)); // NOI18N
+        jLabel2.setForeground(new java.awt.Color(153, 153, 153));
         jLabel2.setText("Ask a user for key :");
 
         jButton1.setFont(new java.awt.Font("Arial Black", 3, 16)); // NOI18N
+        jButton1.setForeground(new java.awt.Color(153, 153, 153));
         jButton1.setText("Enter");
+        jButton1.setBorder(null);
+        jButton1.setContentAreaFilled(false);
         jButton1.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
                 jButton1ActionPerformed(evt);
@@ -106,7 +111,9 @@ public class AskKey extends javax.swing.JFrame {
         });
 
         jButton2.setFont(new java.awt.Font("Arial Black", 3, 16)); // NOI18N
-        jButton2.setText("Refresh");
+        jButton2.setForeground(new java.awt.Color(153, 153, 153));
+        jButton2.setBorder(null);
+        jButton2.setPreferredSize(new java.awt.Dimension(20, 20));
         jButton2.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
                 jButton2ActionPerformed(evt);
@@ -116,54 +123,56 @@ public class AskKey extends javax.swing.JFrame {
         jLabel3.setForeground(new java.awt.Color(255, 0, 0));
         jLabel3.setText("Please do not Select your own self");
 
-        jList1.setModel(new javax.swing.AbstractListModel() {
+        jList2.setModel(new javax.swing.AbstractListModel() {
             String[] strings = { "Item 1", "Item 2", "Item 3", "Item 4", "Item 5" };
             public int getSize() { return strings.length; }
             public Object getElementAt(int i) { return strings[i]; }
         });
-        jScrollPane1.setViewportView(jList1);
+        jScrollPane2.setViewportView(jList2);
 
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(getContentPane());
         getContentPane().setLayout(layout);
         layout.setHorizontalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, layout.createSequentialGroup()
-                .addGap(27, 27, 27)
-                .addComponent(jButton1, javax.swing.GroupLayout.PREFERRED_SIZE, 107, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                .addComponent(jButton2)
-                .addGap(34, 34, 34))
             .addGroup(layout.createSequentialGroup()
-                .addGap(117, 117, 117)
-                .addComponent(jLabel1, javax.swing.GroupLayout.PREFERRED_SIZE, 105, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
-            .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, layout.createSequentialGroup()
-                .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                .addComponent(jLabel3, javax.swing.GroupLayout.PREFERRED_SIZE, 187, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
-            .addGroup(layout.createSequentialGroup()
-                .addGap(62, 62, 62)
-                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING)
-                    .addComponent(jScrollPane1, javax.swing.GroupLayout.PREFERRED_SIZE, 227, javax.swing.GroupLayout.PREFERRED_SIZE)
-                    .addComponent(jLabel2, javax.swing.GroupLayout.PREFERRED_SIZE, 219, javax.swing.GroupLayout.PREFERRED_SIZE))
-                .addContainerGap(57, Short.MAX_VALUE))
+                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                    .addGroup(layout.createSequentialGroup()
+                        .addContainerGap()
+                        .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                            .addGroup(layout.createSequentialGroup()
+                                .addGap(16, 16, 16)
+                                .addComponent(jScrollPane2, javax.swing.GroupLayout.PREFERRED_SIZE, 154, javax.swing.GroupLayout.PREFERRED_SIZE)
+                                .addGap(17, 17, 17)
+                                .addComponent(jButton2, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
+                            .addComponent(jLabel2, javax.swing.GroupLayout.PREFERRED_SIZE, 219, javax.swing.GroupLayout.PREFERRED_SIZE)
+                            .addComponent(jLabel3, javax.swing.GroupLayout.PREFERRED_SIZE, 181, javax.swing.GroupLayout.PREFERRED_SIZE)))
+                    .addGroup(layout.createSequentialGroup()
+                        .addGap(45, 45, 45)
+                        .addComponent(jButton1, javax.swing.GroupLayout.PREFERRED_SIZE, 107, javax.swing.GroupLayout.PREFERRED_SIZE))
+                    .addGroup(layout.createSequentialGroup()
+                        .addGap(49, 49, 49)
+                        .addComponent(jLabel1, javax.swing.GroupLayout.PREFERRED_SIZE, 124, javax.swing.GroupLayout.PREFERRED_SIZE)))
+                .addContainerGap(17, Short.MAX_VALUE))
         );
         layout.setVerticalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(layout.createSequentialGroup()
-                .addGap(35, 35, 35)
+                .addGap(16, 16, 16)
                 .addComponent(jLabel1)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addComponent(jLabel2)
-                .addGap(8, 8, 8)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
                 .addComponent(jLabel3, javax.swing.GroupLayout.PREFERRED_SIZE, 21, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addComponent(jScrollPane1, javax.swing.GroupLayout.PREFERRED_SIZE, 200, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                    .addGroup(layout.createSequentialGroup()
+                        .addGap(1, 1, 1)
+                        .addComponent(jButton2, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
+                    .addGroup(layout.createSequentialGroup()
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                        .addComponent(jScrollPane2, javax.swing.GroupLayout.PREFERRED_SIZE, 193, javax.swing.GroupLayout.PREFERRED_SIZE)))
                 .addGap(18, 18, 18)
-                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
-                    .addComponent(jButton1)
-                    .addComponent(jButton2))
-                .addContainerGap(40, Short.MAX_VALUE))
+                .addComponent(jButton1)
+                .addContainerGap(13, Short.MAX_VALUE))
         );
 
         pack();
@@ -171,8 +180,8 @@ public class AskKey extends javax.swing.JFrame {
 
     private void jButton1ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton1ActionPerformed
         // TODO add your handling code here:
-        int ind = jList1.getSelectedIndex();
-        if (caller_name.equals((String) jList1.getSelectedValue())) {
+             int ind = jList2.getSelectedIndex();
+        if (caller_name.equals((String) jList2.getSelectedValue())) {
             jLabel3.setEnabled(true);
         } else {
             if (ser_cli == 1) {
@@ -182,10 +191,12 @@ public class AskKey extends javax.swing.JFrame {
             }
             this.dispose();
         }
+
     }//GEN-LAST:event_jButton1ActionPerformed
 
     private void jButton2ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton2ActionPerformed
-        String[] temp = new String[0];
+        // TODO add your handling code here:
+       String[] temp = new String[0];
         if (ser_cli == 1) {
             temp = Service.get_device_list();
         } else {
@@ -199,9 +210,8 @@ public class AskKey extends javax.swing.JFrame {
         for (int i = 0; i < temp.length; i++) {
             d1.addElement(temp[i]);
         }
-
     }//GEN-LAST:event_jButton2ActionPerformed
-
+    
     /**
      * @param args the command line arguments
      */
@@ -232,19 +242,20 @@ public class AskKey extends javax.swing.JFrame {
         /* Create and display the form */
         java.awt.EventQueue.invokeLater(new Runnable() {
             public void run() {
-                //new AskKey().setVisible(true);
+              //  new AskKey().setVisible(true);
             }
         });
     }
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
-    private javax.swing.JButton jButton1;
+    public javax.swing.JButton jButton1;
     private javax.swing.JButton jButton2;
     private javax.swing.JLabel jLabel1;
     private javax.swing.JLabel jLabel2;
     private javax.swing.JLabel jLabel3;
-    private javax.swing.JList jList1;
-    private javax.swing.JScrollPane jScrollPane1;
+    private javax.swing.JList jList2;
+    private javax.swing.JScrollPane jScrollPane2;
     // End of variables declaration//GEN-END:variables
-    
+    private DefaultListModel listModelak = null;
+    public String user_name = null;
 }

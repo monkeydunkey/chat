@@ -20,7 +20,7 @@ public interface ChatInterface {
      * signals and not to receive signals.
      */
     @BusSignal
-    public void Notification(String str, String nickname, double key) throws BusException;
+    public void Notify(String str, String nickname, double key) throws BusException;
     @BusSignal
     public void nickname(String usrname , String all_unique)throws BusException;
     @BusSignal
@@ -29,6 +29,8 @@ public interface ChatInterface {
     public void sendKey(Double a)throws BusException;
     @BusSignal
     public void askKey(String name)throws BusException;
+    @BusSignal
+    public void send_message(String message,String nick);
     
 }
 

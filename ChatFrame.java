@@ -6,10 +6,18 @@
 
 package org.alljoyn.bus.sample.chat;
   
+import java.awt.Dimension;
+import java.awt.GraphicsDevice;
+import java.awt.GraphicsEnvironment;
+import java.awt.Rectangle;
+import java.awt.Toolkit;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.awt.image.BufferedImage;
+import java.io.IOException;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import javax.imageio.ImageIO;
 import javax.swing.JFrame;
 import org.alljoyn.bus.BusException;
 import javax.swing.Timer;
@@ -26,7 +34,24 @@ public class ChatFrame extends javax.swing.JFrame {
     
     public ChatFrame(final String s,final String uni,final int i) {
        
+          BufferedImage bf1,bf2;
+        try{
+        bf1 = ImageIO.read(getClass().getResource("history.jpg"));
+        setContentPane(new backImage(bf1));
+        bf2 = ImageIO.read(getClass().getResource("icon3copy1.jpg"));
+        setIconImage(bf2);
+        } catch(IOException e){
+            e.printStackTrace();
+        }
         initComponents();
+        // Dimension dim = Toolkit.getDefaultToolkit().getScreenSize();
+    //this.setLocation(dim.width/2-this.getSize().width/2, dim.height/2-this.getSize().height/2);
+        GraphicsEnvironment ge = GraphicsEnvironment.getLocalGraphicsEnvironment();
+        GraphicsDevice defaultScreen = ge.getDefaultScreenDevice();
+        Rectangle rect = defaultScreen.getDefaultConfiguration().getBounds();
+        int x = (int) rect.getMaxX() - this.getWidth();
+        int y = (int) rect.getMaxY() - this.getHeight()  ;
+        this.setLocation(x, (y-35));
         jLabel1.setText(s);
         alljoyn_uni=uni;
         jLabel2.setVisible(false);
@@ -37,9 +62,9 @@ public class ChatFrame extends javax.swing.JFrame {
                 jLabel2.setVisible(true);
                 jButton1.setEnabled(false);
                 if (i == 1) {
-                Service.call_missed(uni+" - "+s);
+                Service.call_missed(s,uni);
                 } else {
-                Client.call_missed(uni+" - "+s);
+                Client.call_missed(s,uni);
             }
                 f.dispose();
             }
@@ -60,7 +85,17 @@ public class ChatFrame extends javax.swing.JFrame {
         jButton1 = new javax.swing.JButton();
         jLabel2 = new javax.swing.JLabel();
 
-        jButton1.setText("Reject Call");
+        setDefaultCloseOperation(javax.swing.WindowConstants.DISPOSE_ON_CLOSE);
+        setBackground(new java.awt.Color(102, 255, 102));
+
+        jLabel1.setForeground(new java.awt.Color(153, 153, 153));
+        jLabel1.setVerticalAlignment(javax.swing.SwingConstants.BOTTOM);
+
+        jButton1.setForeground(new java.awt.Color(153, 153, 153));
+        jButton1.setIcon(new javax.swing.ImageIcon("C:\\Users\\K!LL3R\\Documents\\NetBeansProjects\\org.alljoyn.bus.sample.chat\\org.alljoyn.bus.sample.chat\\build\\classes\\org\\alljoyn\\bus\\sample\\chat\\button.png")); // NOI18N
+        jButton1.setBorder(null);
+        jButton1.setContentAreaFilled(false);
+        jButton1.setPreferredSize(new java.awt.Dimension(60, 20));
         jButton1.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
                 jButton1ActionPerformed(evt);
@@ -80,11 +115,11 @@ public class ChatFrame extends javax.swing.JFrame {
                         .addGap(20, 20, 20)
                         .addComponent(jLabel1, javax.swing.GroupLayout.PREFERRED_SIZE, 292, javax.swing.GroupLayout.PREFERRED_SIZE))
                     .addGroup(layout.createSequentialGroup()
-                        .addGap(110, 110, 110)
-                        .addComponent(jButton1, javax.swing.GroupLayout.PREFERRED_SIZE, 98, javax.swing.GroupLayout.PREFERRED_SIZE))
-                    .addGroup(layout.createSequentialGroup()
                         .addGap(43, 43, 43)
-                        .addComponent(jLabel2, javax.swing.GroupLayout.PREFERRED_SIZE, 228, javax.swing.GroupLayout.PREFERRED_SIZE)))
+                        .addComponent(jLabel2, javax.swing.GroupLayout.PREFERRED_SIZE, 228, javax.swing.GroupLayout.PREFERRED_SIZE))
+                    .addGroup(layout.createSequentialGroup()
+                        .addGap(110, 110, 110)
+                        .addComponent(jButton1, javax.swing.GroupLayout.PREFERRED_SIZE, 100, javax.swing.GroupLayout.PREFERRED_SIZE)))
                 .addContainerGap(21, Short.MAX_VALUE))
         );
         layout.setVerticalGroup(
@@ -94,8 +129,8 @@ public class ChatFrame extends javax.swing.JFrame {
                 .addComponent(jLabel2)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
                 .addComponent(jLabel1, javax.swing.GroupLayout.PREFERRED_SIZE, 26, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                .addComponent(jButton1)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
+                .addComponent(jButton1, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
                 .addContainerGap())
         );
 
@@ -104,19 +139,19 @@ public class ChatFrame extends javax.swing.JFrame {
 
     private void jButton1ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton1ActionPerformed
         // TODO add your handling code here:
-       try{
-           Client.sendMessage("bomb",alljoyn_uni);
-       }
-      
-       catch(Exception e){
+        try{
+            Client.sendMessage("bomb",alljoyn_uni);
+        }
+
+        catch(Exception e){
             try{
-           Service.sendMessage("bomb",alljoyn_uni);
-       } 
+                Service.sendMessage("bomb",alljoyn_uni);
+            }
             catch(BusException f){
-          System.out.println("exception caught"); 
-       }
-       }     
-       this.dispose();
+                System.out.println("exception caught");
+            }
+        }
+        this.dispose();
     }//GEN-LAST:event_jButton1ActionPerformed
 
     /**
@@ -149,7 +184,7 @@ public class ChatFrame extends javax.swing.JFrame {
         /* Create and display the form */
         java.awt.EventQueue.invokeLater(new Runnable() {
             public void run() {
-                //new ChatFrame("hi","fuck").setVisible(true);
+                new ChatFrame("hi","fuck",1).setVisible(true);
             }
         });
     }
