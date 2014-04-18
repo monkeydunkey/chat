@@ -7,7 +7,12 @@
 package org.alljoyn.bus.sample.chat;
 
 import java.awt.Color;
+import java.awt.Dimension;
+import java.awt.Toolkit;
+import java.awt.image.BufferedImage;
+import java.io.IOException;
 import java.util.ArrayList;
+import javax.imageio.ImageIO;
 import javax.swing.DefaultListModel;
 
 /**
@@ -20,9 +25,19 @@ public class Call_Notification extends javax.swing.JFrame {
      * Creates new form Call_Notification
      */
     public Call_Notification(ArrayList<String> calls) {
+       BufferedImage bf1,bf2;
+        try{
+        bf1 = ImageIO.read(getClass().getResource("history.jpg"));
+        this.setContentPane(new backImage(bf1));
+        bf2 = ImageIO.read(getClass().getResource("icon3copy1.jpg"));
+        setIconImage(bf2);
+        } catch(IOException e){
+            e.printStackTrace();
+        }
+         
         initComponents();
-        getContentPane().setBackground(Color.getHSBColor(0, 153, 102));
-        setTitle("Missed Calls");
+         Dimension dim = Toolkit.getDefaultToolkit().getScreenSize();
+    this.setLocation(dim.width/2-this.getSize().width/2, dim.height/2-this.getSize().height/2);
         
         DefaultListModel d1=new DefaultListModel();
         for(int i=1;i<calls.size();i++){
@@ -46,8 +61,10 @@ public class Call_Notification extends javax.swing.JFrame {
         jList1 = new javax.swing.JList();
 
         setDefaultCloseOperation(javax.swing.WindowConstants.DISPOSE_ON_CLOSE);
+        setTitle("Missed Calls");
 
-        jLabel1.setFont(new java.awt.Font("Times New Roman", 1, 14)); // NOI18N
+        jLabel1.setFont(new java.awt.Font("Comic Sans MS", 0, 18)); // NOI18N
+        jLabel1.setForeground(new java.awt.Color(255, 255, 255));
         jLabel1.setText("   You Have Missed Calls form");
 
         jList1.setModel(new javax.swing.AbstractListModel() {
@@ -112,6 +129,7 @@ public class Call_Notification extends javax.swing.JFrame {
 
         /* Create and display the form */
         java.awt.EventQueue.invokeLater(new Runnable() {
+           
             public void run() {
                 //new Call_Notification().setVisible(true);
             }

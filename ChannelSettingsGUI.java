@@ -3,7 +3,6 @@
  * To change this template file, choose Tools | Templates
  * and open the template in the editor.
  */
-
 package org.alljoyn.bus.sample.chat;
 
 import java.awt.Dimension;
@@ -24,20 +23,27 @@ public class ChannelSettingsGUI extends javax.swing.JFrame {
     private static Boolean create_channel;
     private static Boolean join_channel;
     private static Boolean disconnect;
-    public ChannelSettingsGUI(Boolean cr_ch,Boolean jo_ch,Boolean dis ) {
-        BufferedImage bf1,bf2;
-        try{
-        bf1 = ImageIO.read(getClass().getResource("history.jpg"));
-        setContentPane(new backImage(bf1));
-        bf2 = ImageIO.read(getClass().getResource("icon3copy1.jpg"));
-        setIconImage(bf2);
-        } catch(IOException e){
+
+    public ChannelSettingsGUI(Boolean cr_ch, Boolean jo_ch, Boolean dis) {
+        BufferedImage bf1, bf2;
+        try {
+            bf1 = ImageIO.read(getClass().getResource("history.jpg"));
+            setContentPane(new backImage(bf1));
+            bf2 = ImageIO.read(getClass().getResource("icon3copy1.jpg"));
+            setIconImage(bf2);
+        } catch (IOException e) {
             e.printStackTrace();
         }
         initComponents();
         Dimension dim = Toolkit.getDefaultToolkit().getScreenSize();
-    this.setLocation(dim.width/2-this.getSize().width/2, dim.height/2-this.getSize().height/2);
-    jLabel1.setVisible(false);
+        this.setLocation(dim.width / 2 - this.getSize().width / 2, dim.height / 2 - this.getSize().height / 2);
+        jLabel1.setVisible(false);
+        create_channel=cr_ch;
+        join_channel=jo_ch;
+        disconnect =dis;
+        jButton1.setEnabled(create_channel);
+        jButton2.setEnabled(join_channel);
+        jButton3.setEnabled(disconnect);
     }
 
     /**
@@ -87,7 +93,7 @@ public class ChannelSettingsGUI extends javax.swing.JFrame {
             }
         });
 
-        jButton3.setIcon(new javax.swing.ImageIcon(getClass().getResource("/org/alljoyn/bus/sample/chat/icons/channel_ settings/DISCONNECT.png"))); // NOI18N
+        jButton3.setIcon(new javax.swing.ImageIcon(getClass().getResource("/org/alljoyn/bus/sample/chat/icons/fwdbuttons/channel settings/channel settings/disconnect.png"))); // NOI18N
         jButton3.addMouseListener(new java.awt.event.MouseAdapter() {
             public void mouseEntered(java.awt.event.MouseEvent evt) {
                 jButton3MouseEntered(evt);
@@ -171,7 +177,7 @@ public class ChannelSettingsGUI extends javax.swing.JFrame {
 
     private void jButton3MouseExited(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_jButton3MouseExited
         // TODO add your handling code here:
-         jLabel1.setVisible(false);
+        jLabel1.setVisible(false);
     }//GEN-LAST:event_jButton3MouseExited
 
     private void jButton1ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton1ActionPerformed
@@ -189,7 +195,7 @@ public class ChannelSettingsGUI extends javax.swing.JFrame {
     private void jButton3ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton3ActionPerformed
         MainGUI.update_channel_setting(true, true, false);
         App.type(3);
-        
+
     }//GEN-LAST:event_jButton3ActionPerformed
 
     /**
@@ -222,7 +228,7 @@ public class ChannelSettingsGUI extends javax.swing.JFrame {
         /* Create and display the form */
         java.awt.EventQueue.invokeLater(new Runnable() {
             public void run() {
-                new ChannelSettingsGUI(true,true,false).setVisible(true);
+                new ChannelSettingsGUI(true, true, false).setVisible(true);
             }
         });
     }

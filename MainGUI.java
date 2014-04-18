@@ -3,7 +3,6 @@
  * To change this template file, choose Tools | Templates
  * and open the template in the editor.
  */
-
 package org.alljoyn.bus.sample.chat;
 
 import java.awt.Dimension;
@@ -23,69 +22,69 @@ public class MainGUI extends javax.swing.JFrame {
     /**
      * Creates new form MainGUI
      */
-    
-    private static String channel_name="Na";
-    private static String nickname="Na";
+    private static String channel_name = "Na";
+    private static String nickname = "Na";
     //Channel settings variables
     private static Boolean Create_channel = true;
     private static Boolean join_channel = true;
     private static Boolean Disconnect = false;
     //
     //Call notify variables
-    
+
     //
     Chat_messageGUI chat_msg;
-    public void original_state(){
-        channel_name="Na";
-        nickname="Na";
-        Create_channel=true;
-        join_channel =true;
-        Disconnect=false;
+
+    public void original_state() {
+        channel_name = "Na";
+        nickname = "Na";
+        Create_channel = true;
+        join_channel = true;
+        Disconnect = false;
         jLabel4.setText("Na");
         jLabel6.setText("Na");
         chat_msg.set_nickname("Na");
     }
-    
-    public void Set_channel_nick_name(String ch_name,String nick_name){
-        channel_name=ch_name;
-        nickname=nick_name;
+
+    public void Set_channel_nick_name(String ch_name, String nick_name) {
+        channel_name = ch_name;
+        nickname = nick_name;
         jLabel4.setText(channel_name);
         jLabel6.setText(nickname);
     }
-    
-    
-    
-    public static void update_channel_setting(Boolean cr_ch,Boolean jo_ch,Boolean dis){
-        Create_channel=cr_ch;
-        join_channel=jo_ch;
-        Disconnect=dis;
+
+    public static void update_channel_setting(Boolean cr_ch, Boolean jo_ch, Boolean dis) {
+        Create_channel = cr_ch;
+        join_channel = jo_ch;
+        Disconnect = dis;
     }
-    
-    public MainGUI(){
-        
-        BufferedImage bf1,bf2;
-        try{
-        bf1 = ImageIO.read(getClass().getResource("history.jpg"));
-        setContentPane(new backImage(bf1));
-        bf2 = ImageIO.read(getClass().getResource("icon3copy1.jpg"));
-        setIconImage(bf2);
-        } catch(IOException e){
+
+    public MainGUI() {
+
+        BufferedImage bf1, bf2;
+        try {
+            bf1 = ImageIO.read(getClass().getResource("history.jpg"));
+            setContentPane(new backImage(bf1));
+            bf2 = ImageIO.read(getClass().getResource("icon3copy1.jpg"));
+            setIconImage(bf2);
+        } catch (IOException e) {
             e.printStackTrace();
         }
         initComponents();
         Dimension dim = Toolkit.getDefaultToolkit().getScreenSize();
-    this.setLocation(dim.width/2-this.getSize().width/2, dim.height/2-this.getSize().height/2);
-    jLabel2.setVisible(false);
-    java.awt.EventQueue.invokeLater(new Runnable() {
+        this.setLocation(dim.width / 2 - this.getSize().width / 2, dim.height / 2 - this.getSize().height / 2);
+        jLabel2.setVisible(false);
+        java.awt.EventQueue.invokeLater(new Runnable() {
             public void run() {
                 try {
-                    chat_msg=new Chat_messageGUI(!Create_channel);
+                    chat_msg = new Chat_messageGUI(!Create_channel);
                     chat_msg.setVisible(false);
-                } catch ( IOException | InterruptedException ex) {
+                } catch (IOException | InterruptedException ex) {
                     Logger.getLogger(MainGUI.class.getName()).log(Level.SEVERE, null, ex);
                 }
             }
         });
+        
+        
     }
 
     /**
@@ -298,7 +297,7 @@ public class MainGUI extends javax.swing.JFrame {
     private void jButton1ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton1ActionPerformed
         java.awt.EventQueue.invokeLater(new Runnable() {
             public void run() {
-               new ChannelSettingsGUI(Create_channel,join_channel,Disconnect).setVisible(true);
+                new ChannelSettingsGUI(Create_channel, join_channel, Disconnect).setVisible(true);
             }
         });
     }//GEN-LAST:event_jButton1ActionPerformed
@@ -306,7 +305,7 @@ public class MainGUI extends javax.swing.JFrame {
     private void jButton2ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton2ActionPerformed
         java.awt.EventQueue.invokeLater(new Runnable() {
             public void run() {
-               new Call_notifyGUI(channel_name,nickname,!Create_channel).setVisible(true);
+                new Call_notifyGUI(channel_name, nickname, !Create_channel).setVisible(true);
             }
         });
     }//GEN-LAST:event_jButton2ActionPerformed
@@ -321,10 +320,10 @@ public class MainGUI extends javax.swing.JFrame {
         // TODO add your handling code here:
         java.awt.EventQueue.invokeLater(new Runnable() {
             public void run() {
-               new GroupPlayGUI().setVisible(true);
+                new GroupPlayGUI().setVisible(true);
             }
         });
-        
+
     }//GEN-LAST:event_jButton4ActionPerformed
 
     /**

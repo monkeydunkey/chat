@@ -22,7 +22,7 @@ public interface ChatInterface {
     @BusSignal
     public void Notify(String str, String nickname, double key) throws BusException;
     @BusSignal
-    public void nickname(String usrname , String all_unique)throws BusException;
+    public void nickname(String usrname , String all_unique, Boolean mob_or_desk)throws BusException;
     @BusSignal
     public void validate(boolean val)throws BusException;
     @BusSignal
@@ -31,6 +31,21 @@ public interface ChatInterface {
     public void askKey(String name)throws BusException;
     @BusSignal
     public void send_message(String message,String nick);
+    
+    @BusSignal
+    public void music_data(byte[] data) throws BusException;
+    
+    @BusSignal
+    public void clock_sync(long countdown )throws BusException;
+    
+    @BusSignal
+    public void delay_est(long time_stamp,long time_stamp_pre) throws BusException;
+    
+    @BusSignal
+    public void song_change(long duration) throws BusException;
+    
+    @BusSignal
+    public void re_sync() throws BusException;
     
 }
 

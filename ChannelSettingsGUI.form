@@ -89,7 +89,7 @@
     <Component class="javax.swing.JButton" name="jButton3">
       <Properties>
         <Property name="icon" type="javax.swing.Icon" editor="org.netbeans.modules.form.editors2.IconEditor">
-          <Image iconType="3" name="/org/alljoyn/bus/sample/chat/icons/channel_ settings/DISCONNECT.png"/>
+          <Image iconType="3" name="/org/alljoyn/bus/sample/chat/icons/fwdbuttons/channel settings/channel settings/disconnect.png"/>
         </Property>
       </Properties>
       <Events>

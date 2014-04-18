@@ -27,7 +27,7 @@ import org.alljoyn.bus.BusException;
  */
 public class App {
 
-    static int ser_cli = 0;         //This stores the type of operation requested by the user 1-server, 2-client, 3-stop client/service, 4-Ask for key, 5-call notifications 6-group chat
+    static int ser_cli = 0;         //This stores the type of operation requested by the user 1-server, 2-client, 3-stop client/service, 4-Ask for key, 5-call notifications 6-group chat 7-Group Play
     static int service_or_client = 0; //1 is for server 2 for client 
     static MainGUI gui;
     static String message;          //This the message for the group chat feature
@@ -58,6 +58,7 @@ public class App {
             }
         });
         Thread t;
+        System.out.println(service_or_client);
         while (true) {
             while (ser_cli == 0) {
                 try {
@@ -118,6 +119,20 @@ public class App {
                 }
                 if (service_or_client == 2) {
                     Client.send_msg(message);
+                }
+                ser_cli = 0;
+            }
+
+            if (ser_cli == 7) {
+                if (service_or_client == 1) {
+                    java.awt.EventQueue.invokeLater(new Runnable() {
+                        public void run() {
+                            new GroupPlayGUI().setVisible(true);
+                        }
+                    });
+                }
+                if (service_or_client == 2) {
+                    
                 }
                 ser_cli = 0;
             }

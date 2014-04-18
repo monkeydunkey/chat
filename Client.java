@@ -13,15 +13,15 @@
  *    ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF
  *    OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
-
-
 package org.alljoyn.bus.sample.chat;
 
 /**
  *
  * @author Shashank
  */
+import java.io.ByteArrayInputStream;
 import java.io.FileNotFoundException;
+import java.io.IOException;
 import java.io.PrintWriter;
 import java.io.UnsupportedEncodingException;
 import java.util.ArrayList;
@@ -39,7 +39,13 @@ import org.alljoyn.bus.MessageContext;
 import org.alljoyn.bus.SignalEmitter;
 
 import java.util.Scanner;
+import java.util.Timer;
+import java.util.TimerTask;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import javax.swing.JOptionPane;
+import javazoom.jl.decoder.JavaLayerException;
+import javazoom.jl.player.Player;
 import org.alljoyn.bus.ProxyBusObject;
 
 public class Client implements Runnable {
@@ -48,7 +54,6 @@ public class Client implements Runnable {
         System.loadLibrary("alljoyn_java");
     }
 
-    
     ///Start of variable declarations
     //////Variables realted to alljoyn connection establishment
     private static final short CONTACT_PORT = 27;                           // port no on which alljoyn communication take place
@@ -63,9 +68,9 @@ public class Client implements Runnable {
 
     private static ArrayList<String> channels;                              //Arraylist for storing all the visible Alljoyn Channel
     private static ArrayList<String> notification_received;                 //ArrayList for storing current call notifications
+    private static ArrayList<String> notification_received_mem;
     private static ArrayList<messageThread> notification_thread;            //ArrayList for storing the notification thread
-    
-    
+
     private static ArrayList<String> MissedCalls;
     private static int channel_selected = -1;
     private static double[] keys = new double[100];                         //Array for storing all the keys that the device received
@@ -94,6 +99,24 @@ public class Client implements Runnable {
         "Looks like our app went for a vacation. Dont worry we shall bring it back.",
         "The flying monkeys are here, we better hide. Dont worry it's only till our reinforcements arrive."};
 
+    private static byte[] mu_data = new byte[10000000];                 //This is one of the two buffers used to store the incoming data
+    private static byte[] mu_data_1 = new byte[10000000];               //This is one of the two buffers used to store the incoming data
+    private static Boolean which_buffer = false;                        //This is used to select to which of the buffer the incoming data is to be written
+    private static long curr_file_duration;                             //This stores the current music file duration
+    private static int offset = 0;                                      //This is the offset from which the next incoming data is to be written on the seleceted buffer
+    private static Boolean connected = false;                           //This is used to specify whether the client is connected to a service or not                    
+
+    private static ByteArrayInputStream in;
+    private static Timer t1;
+    private static final TimerTask music_player = null;
+    private static musicPlayer mp3player = null;
+    private static Thread music_player_handler;
+
+    //The following variables are used to calculate the network delay 
+    private static long t11, t21, t22, t12, t13, t23;
+    private static int step = 0;
+    private static double alpha, lat, off;
+
     ///End of variable Declarations
     @Override
     public void run() {
@@ -102,25 +125,37 @@ public class Client implements Runnable {
 
     // This is used to send message/notification response to the calling device
     public static void sendMessage(String s, String uni) throws BusException {
+        
         SignalEmitter emitter = new SignalEmitter(mySignalInterface, uni, mUseSessionId, SignalEmitter.GlobalBroadcast.Off);
         ChatInterface usrInterface = emitter.getInterface(ChatInterface.class);
         usrInterface.Notify(s, nickname, 0);
+        
+        int ind = notification_received.indexOf(uni);
+        notification_received.remove(ind);
+        notification_received_mem.remove(ind);
+        notification_thread.remove(ind);
     }
-    
+
     //for group chat
-    public static void send_msg(String message){
-        if(myInterface!=null){
-        myInterface.send_message(message, nickname);
+    public static void send_msg(String message) {
+        if (myInterface != null) {
+            myInterface.send_message(message, nickname);
         }
     }
-    
+
 // This method is used to add missed calls to the missed call arraylist
-    public static void call_missed(String s, String nick) {
-        int ind = notification_received.indexOf(nick);
+    public static void call_missed(String s, String alljoyn_uni) {
+        System.out.println("call missed array size "+ notification_received.size());
+        System.out.println("index of "+notification_received.indexOf(alljoyn_uni));
+        
+        int ind = notification_received.indexOf(alljoyn_uni);
+        MissedCalls.add(notification_received_mem.get(ind) + " - " + s);
+        
         notification_received.remove(ind);
+        notification_received_mem.remove(ind);
         notification_thread.remove(ind);
-        MissedCalls.add(nick+" - "+s);
     }
+
     // The signal interface is used to send data using alljoyn's signals
     public static class SignalInterface implements ChatInterface, BusObject {
 
@@ -131,7 +166,7 @@ public class Client implements Runnable {
 
         //Signal via which all the nickname of new users are to be sent
         @Override
-        public void nickname(String usrname, String all_unique) throws BusException {
+        public void nickname(String usrname, String all_unique, Boolean desk_or_mob) throws BusException {
 
         }
 
@@ -156,15 +191,42 @@ public class Client implements Runnable {
         public void send_message(String message, String nick) {
             throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
         }
+
+        @Override
+        public void music_data(byte[] data) throws BusException {
+            throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+        }
+
+        @Override
+        public void clock_sync(long countdown) throws BusException {
+            throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+        }
+
+        @Override
+        public void delay_est(long time_stamp, long time_stamp_pre) throws BusException {
+            throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+        }
+
+        @Override
+        public void song_change(long duration) throws BusException {
+            throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+        }
+
+        @Override
+        public void re_sync() throws BusException {
+            throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+        }
     }
 
     //The signal handler reads the signals sent to the device by other devices
     public static class Signalhandler {
+
         //It handles the notification the PC has received
         @BusSignalHandler(iface = "org.alljoyn.bus.samples.chat", signal = "Notify")
         public void Notify(String string, String nick, double key1) {
-
+            
             if (validate_copy) {
+                System.out.println("here here");
                 Boolean key_exist = false;
                 for (int i = 0; i < 100; i++) {
                     if (keys[i] == key1) {
@@ -174,39 +236,50 @@ public class Client implements Runnable {
                         break;
                     }
                 }
+                System.out.println("notification is empty "+notification_received.isEmpty());
                 if (key_exist || key1 == 0 || key == key1) {
                     if (!string.equals("call cancelled or received")) {
-                        final String f = string;
-                        MessageContext ctx = mBus.getMessageContext();
-                        String nickname = ctx.sender;
-                        String as = nick + " -> " + string;
-                        messageThread sas = new messageThread(as, nickname);
-                        sas.start();
-                        //Incoming notifications' user name and the corresponding gui thread are stored
-                        notification_received.add(nick);
-                        notification_thread.add(sas);
-                        //For Debugging purpose
-                        nickname = nickname.substring(nickname.length() - 10, nickname.length());
-                        System.out.println(nickname + ": " + string);
+                        if (!notification_received_mem.contains(nick)) {
+                            final String f = string;
+                            MessageContext ctx = mBus.getMessageContext();
+                            
+                            String nickname = ctx.sender;
+                            String as = string;
+                            messageThread sas = new messageThread(as, nickname);
+                            sas.start();
+                            //Incoming notifications' user name and the corresponding gui thread are stored
+                            notification_received.add(nickname);
+                            notification_received_mem.add(nick);
+                            
+                            System.out.println("notification received size "+notification_received.size());
+                            for(int i=0;i<notification_received.size();i++){
+                                System.out.println(notification_received.get(i));
+                            }
+                            notification_thread.add(sas);
+                            //For Debugging purpose
+                            nickname = nickname.substring(nickname.length() - 10, nickname.length());
+                            System.out.println(nickname + ": " + string);
+                        } 
                     } else {
-                        
-                        int ind = notification_received.indexOf(nick);
+
+                        int ind = notification_received_mem.indexOf(nick);
                         messageThread temp = notification_thread.get(ind);
                         //The notification thread is stopped
                         temp.stop_thread();
                         // If the user rejects or receives the call from the mobile the notification's properties are removed from the list
                         notification_received.remove(ind);
+                        notification_received_mem.remove(ind);
                         notification_thread.remove(ind);
                     }
                 }
             }
 
         }
-        
+
         @BusSignalHandler(iface = "org.alljoyn.bus.samples.chat", signal = "nickname")
-        public void nickname(String usrname, String all_unique) {
+        public void nickname(String usrname, String all_unique,Boolean desk_or_mob) {
         }
-        
+
         //This signal handler implementation is done only in client side to revceive nickname validation signal form the server
         @BusSignalHandler(iface = "org.alljoyn.bus.samples.chat", signal = "validate")
         public void validate(boolean val) {
@@ -241,12 +314,138 @@ public class Client implements Runnable {
             }
 
         }
-        
+
         //This signal handler, handles the incoming group chat messages
-         @BusSignalHandler(iface = "org.alljoyn.bus.samples.chat", signal = "send_message")
-        public void send_message(String message,String nick){
-            String dis=nick+" : "+message;
-            Chat_message.add_message(dis);
+        @BusSignalHandler(iface = "org.alljoyn.bus.samples.chat", signal = "send_message")
+        public void send_message(String message, String nick) {
+            String dis = nick + " : " + message;
+            Chat_messageGUI.add_message(dis);
+        }
+
+        @BusSignalHandler(iface = "org.alljoyn.bus.samples.chat", signal = "music_data")
+        public void music_data(byte[] data) {
+
+            if (which_buffer) {
+                int j = 0;
+                for (int i = offset; i < offset + data.length; i++, j++) {
+                    mu_data[i] = data[j];
+                }
+                offset += data.length;
+            } else {
+                int j = 0;
+                for (int i = offset; i < offset + data.length; i++, j++) {
+                    mu_data_1[i] = data[j];
+                }
+                offset += data.length;
+            }
+        }
+
+        //When the delay estimated, the service calls this method to start playing the music
+        @BusSignalHandler(iface = "org.alljoyn.bus.samples.chat", signal = "clock_sync")
+        public void clock_sync(long count_down) throws BusException, InterruptedException, IOException {
+            double val = count_down - lat;
+            asyncMusicPlay((long) val);
+
+        }
+
+        //This method is used to calculate the network delay
+        @BusSignalHandler(iface = "org.alljoyn.bus.samples.chat", signal = "delay_est")
+        public void delay_est(long time_stamp, long time_stamp_pre) throws IOException, BusException {
+            if (step == 0) {
+                System.out.println("hi");
+                t11 = time_stamp;
+                t21 = System.currentTimeMillis();
+                t22 = t21;
+                myInterface.delay_est(time_stamp, time_stamp_pre);
+                step++;
+            } else {
+                System.out.println("hiiiii");
+                if (step == 1) {
+                    t12 = time_stamp_pre;
+                    t13 = time_stamp;
+                    t23 = System.currentTimeMillis();
+                    alpha = (double) (t13 - t11) / (double) (t23 - t21);
+                    lat = ((double) (t12 - t11) - alpha * (double) (t22 - t21)) / 2;
+                    off = (t21 - t11) - lat;
+                    myInterface.delay_est(time_stamp, time_stamp_pre);
+                }
+            }
+
+        }
+
+        //This method is used to notify the client of the incoming next song duration holds the duration of the next song
+        @BusSignalHandler(iface = "org.alljoyn.bus.samples.chat", signal = "song_change")
+        public void song_change(long duration) {
+
+            which_buffer = !which_buffer;
+            curr_file_duration = duration;
+            offset = 0;
+            System.out.println("song change " + curr_file_duration);
+        }
+
+        //This method basically initializes the variables of the client
+        @BusSignalHandler(iface = "org.alljoyn.bus.samples.chat", signal = "re_sync")
+        public void re_sync() {
+            offset = 0;
+            which_buffer = false;
+            if (mp3player != null) {
+
+                mp3player.stop();
+            }
+            step = 0;
+            first = true;
+        }
+
+    }
+
+    private static Boolean first = true;
+
+    //This is used to initialize a new thread on which handles continous playing of the music 
+    public static void asyncMusicPlay(final long delay) {
+        Runnable task = new Runnable() {
+            @Override
+            public void run() {
+                try {
+                    play_music(delay);
+                } catch (Exception ex) {
+                    System.out.println("music player handler cannot be started");
+                }
+            }
+        };
+        music_player_handler = new Thread(task, "musicThread");
+        music_player_handler.start();
+    }
+
+    //This method handles the continous playing of music
+    public static void play_music(long delay) throws InterruptedException, IOException {
+        while (true) {
+            System.out.println(which_buffer);
+            if (which_buffer) {
+                in = new ByteArrayInputStream(mu_data);
+                mp3player = new musicPlayer(in);
+                t1 = new Timer(true);
+                if (first) {
+                    t1.schedule(mp3player, delay);
+                    first = false;
+                } else {
+                    t1.schedule(mp3player, 500);
+                }
+                System.out.println("player scheduled");
+            } else {
+                in = new ByteArrayInputStream(mu_data_1);
+                mp3player = new musicPlayer(in);
+                t1 = new Timer(true);
+                if (first) {
+                    t1.schedule(mp3player, delay);
+                    first = false;
+                } else {
+                    t1.schedule(mp3player, 500);
+                }
+            }
+
+            Thread.sleep(curr_file_duration + delay);
+
+            in.close();
         }
     }
 
@@ -258,6 +457,26 @@ public class Client implements Runnable {
         }
 
         public synchronized String[] getUni() throws BusException {
+            throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+        }
+
+        @Override
+        public String[] get_mob_uni() throws BusException {
+            throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+        }
+
+        @Override
+        public String[] get_mob_mem() throws BusException {
+            throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+        }
+
+        @Override
+        public String[] get_des_uni() throws BusException {
+            throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+        }
+
+        @Override
+        public String[] get_des_mem() throws BusException {
             throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
         }
 
@@ -295,24 +514,24 @@ public class Client implements Runnable {
         if (channel_selected == -1) {
             return;
         }
-         
+
         String name = channels.get(channel_selected + 1);
         System.out.println(name);
-        Status status = mBus.joinSession(NAME_PREFIX + "." + name, contactPort, sessionId, sessionOpts, new SessionListener(){
+        Status status = mBus.joinSession(NAME_PREFIX + "." + name, contactPort, sessionId, sessionOpts, new SessionListener() {
             public void sessionLost(int sessionId, int reason) {
-               JOptionPane.showMessageDialog(null, "The Service has stopped");
-                running=false;
+                JOptionPane.showMessageDialog(null, "The Service has stopped");
+                running = false;
             }
         });
         if (status != Status.OK) {
             JOptionPane.showMessageDialog(null, ErrorList[rand.nextInt(5)]);
             System.out.println(status);
-            running=false;
+            running = false;
             return;
         }
         System.out.println(String.format("BusAttachement.joinSession successful sessionId = %d", sessionId.value));
         mUseSessionId = sessionId.value;
-        
+
         //All the Interfaces required to send the signals and method calls are initialized
         SignalEmitter emitter = new SignalEmitter(mySignalInterface, sessionId.value, SignalEmitter.GlobalBroadcast.Off);
         System.out.println("flag set");
@@ -330,6 +549,9 @@ public class Client implements Runnable {
 
     //This method gets the nicknames of all the devices connected on the channel
     public static String[] get_channel_nick() throws BusException {
+        if(mGroupInterface==null){
+            System.out.println("Group interface is null");
+        }
         return mGroupInterface.getMem();
     }
 
@@ -351,8 +573,8 @@ public class Client implements Runnable {
     //This method replies to other devices who have asked the device for their key
     public static void ask_key() throws BusException, InterruptedException {
         ask_key_ind = -1;
-        String[] uni_names = mGroupInterface.getUni();
-        final String[] nick = mGroupInterface.getMem();
+        String[] uni_names = mGroupInterface.get_mob_uni();
+        final String[] nick = mGroupInterface.get_mob_mem();
         System.out.println("it's called");
         java.awt.EventQueue.invokeLater(new Runnable() {
             public void run() {
@@ -377,7 +599,7 @@ public class Client implements Runnable {
 
     }
 
-     //This method starts the GUI which shows user all the call they have missed
+    //This method starts the GUI which shows user all the call they have missed
     public static void see_missed_calls() {
         java.awt.EventQueue.invokeLater(new Runnable() {
             public void run() {
@@ -423,13 +645,16 @@ public class Client implements Runnable {
 
             keys[i] = -1;
         }
-        
+
         channel_selected = -1;
         myInterface = null;
         mGroupInterface = null;
         j1 = new Join_Channel(channels);
         nickname = null;
         rand = new Random();
+        notification_thread=new ArrayList<messageThread>();
+        notification_received=new ArrayList<String>();
+        notification_received_mem=new ArrayList<String>();
         
         class MyBusListener extends BusListener {
 
@@ -542,10 +767,9 @@ public class Client implements Runnable {
         while (nickname == null && running) {
             Thread.sleep(500);
         }
-        
 
         if (running) {
-            myInterface.nickname(nickname, alljoynnick);
+            myInterface.nickname(nickname, alljoynnick, true);
             App.set_channel_nickname(channels.get(channel_selected + 1), nickname);
         }
 
@@ -559,8 +783,8 @@ public class Client implements Runnable {
             return;
         }
 
-        String[] uni_names = mGroupInterface.getUni();
-        String[] nick = mGroupInterface.getMem();
+        String[] uni_names = mGroupInterface.get_mob_uni();
+        String[] nick = mGroupInterface.get_mob_mem();
         for (int i = 0; i < nick.length; i++) {
             System.out.println(uni_names[i] + " - " + nick[i]);
         }
@@ -583,7 +807,7 @@ class messageThread extends Thread {
 
     final String f;
     final String all_uni;
-    private static ChatFrame ch;
+    private static PopUpNotification ch;
 
     public messageThread(String s, String uni) {
         f = s;
@@ -598,9 +822,38 @@ class messageThread extends Thread {
     public void run() {
         java.awt.EventQueue.invokeLater(new Runnable() {
             public void run() {
-                ch = new ChatFrame(f, all_uni, 2);
+                ch = new PopUpNotification(f, all_uni, 2);
                 ch.setVisible(true);
             }
         });
+    }
+}
+//This thread implementation is used to run the music player
+
+class musicPlayer extends TimerTask {
+
+    ByteArrayInputStream data;
+    static Player mp3player;
+
+    public musicPlayer(ByteArrayInputStream in) {
+        this.data = in;
+    }
+
+    public void stop() {
+        System.out.println("player stopped by method call");
+        mp3player.close();
+    }
+
+    public void run() {
+
+        try {
+            System.out.println("player " + System.currentTimeMillis());
+            mp3player = new Player(data);
+            mp3player.play();
+            System.out.println("player stopped");
+        } catch (JavaLayerException ex) {
+            Logger.getLogger(musicPlayer.class.getName()).log(Level.SEVERE, null, ex);
+        }
+
     }
 }

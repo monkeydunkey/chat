@@ -175,7 +175,7 @@ public class Call_notifyGUI extends javax.swing.JFrame {
     }// </editor-fold>//GEN-END:initComponents
 
     private void jButton2ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton2ActionPerformed
-        App.type(4);
+        App.type(5);
     }//GEN-LAST:event_jButton2ActionPerformed
 
     private void jCheckBox1ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jCheckBox1ActionPerformed
@@ -215,7 +215,7 @@ public class Call_notifyGUI extends javax.swing.JFrame {
     }//GEN-LAST:event_jLabel3MouseExited
 
     private void jButton1ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton1ActionPerformed
-        App.type(5);
+        App.type(4);
     }//GEN-LAST:event_jButton1ActionPerformed
 
     /**
