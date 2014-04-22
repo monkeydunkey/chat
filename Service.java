@@ -23,12 +23,10 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
-import java.io.PrintWriter;
 import java.io.UnsupportedEncodingException;
 import java.util.ArrayList;
 import java.util.Map;
 import java.util.Random;
-import java.util.Scanner;
 import java.util.Timer;
 import java.util.TimerTask;
 import java.util.logging.Level;
@@ -77,14 +75,15 @@ public class Service {
     private static ArrayList<String> nickname_desk;
     private static ArrayList<String> Alljoyn_unique_name_mob;
     private static ArrayList<String> nickname_mob;
-    
-    
+    private static Boolean notification_enabled = true;
+
     private static double[] keys = new double[100];                     //stores the all the keys it has recieved
     private static int key_count = 0;
     private static ArrayList<String> channels;                          //Arraylist for storing all the visible Alljoyn Channel
     private static ArrayList<String> notification_received;             //Arraylist for storing all the current call notifications
     private static ArrayList<String> notification_received_mem;
     private static ArrayList<messageTh> notification_thread;            //Arraylist for storing the threads of the message box GUI
+    private static ArrayList<String> delay_est;
 
     private static Boolean running;                                     //This is used to stop the program. Setting it to false will stop the serve program
     private static int ask_key_ind = -1;                                //This stores the device index in the device list from whoes key user wishes to get
@@ -101,7 +100,7 @@ public class Service {
         "The flying monkeys are here, we better hide. Dont worry it's only till our reinforcements arrive."};
 
     private static FileInputStream in;                  //this stores the FileInputStream object of the current song
-    private static long previous_time;                  //This used for syncing purpose
+    private static long[] previous_time;                  //This used for syncing purpose
     private static Timer t1;                            //This timer is used to schedule the player
     private static TimerTask music_player;              //This is the task that handles the music player
     private static long delay = 0;                      //this stores the Round trip time of a communication with other devices
@@ -118,21 +117,29 @@ public class Service {
     //End of Variable Declarations
     // This is used to send message/notification response to the calling device
     public static void sendMessage(String s, String uni) throws BusException {
+        if (mySignalInterface == null) {
+            System.out.println("hihihihihihi");
+        }
         SignalEmitter emitter = new SignalEmitter(mySignalInterface, uni, mSessionId, SignalEmitter.GlobalBroadcast.Off);
         ChatInterface usrInterface = emitter.getInterface(ChatInterface.class);
         usrInterface.Notify(s, nickname.get(0), 0);
-        
+
         int ind = notification_received.indexOf(uni);
         notification_received.remove(ind);
         notification_received_mem.remove(ind);
         notification_thread.remove(ind);
     }
 
+    public static void set_enabled(Boolean val) {
+        System.out.println("set enabled "+val);
+        notification_enabled = val;
+    }
+
     // This method is used to add missed calls to the missed call arraylist
-    public static void call_missed(String s, String alljoyn_uni){
+    public static void call_missed(String s, String alljoyn_uni) {
         int ind = notification_received.indexOf(alljoyn_uni);
         MissedCalls.add(notification_received_mem.get(ind) + " - " + s);
-        
+
         notification_received.remove(ind);
         notification_received_mem.remove(ind);
         notification_thread.remove(ind);
@@ -155,7 +162,7 @@ public class Service {
 
         //Signal via which all the nickname of new users are to be sent
         @Override
-        public void nickname(String usrname, String Alljoyn_unique_nameque,Boolean mob_or_desk) throws BusException {
+        public void nickname(String usrname, String Alljoyn_unique_nameque, Boolean mob_or_desk) throws BusException {
         }
 
         //Signal via which the Service/Channel creator validates a new users nickname
@@ -212,52 +219,54 @@ public class Service {
         @BusSignalHandler(iface = "org.alljoyn.bus.samples.chat", signal = "Notify")
         public void Notify(String string, String nick, double key1) {
             System.out.println("here here");
-            Boolean key_exist = false;
-            for (int i = 0; i < 100; i++) {
-                if (keys[i] == key1) {
-                    key_exist = true;
-                    break;
-                } else if (keys[i] == -1) {
-                    break;
-                }
-            }
-            if (key_exist || key1 == 0 || key == key1) {
-                if (!string.equals("call cancelled or received")) {
-                    System.out.println("fuck");
-                    if(!notification_received_mem.contains(nick)){
-                        System.out.println("fuck1");
-                        final String f = string;
-                        MessageContext ctx = mBus.getMessageContext();
-                        String nickname = ctx.sender;
-                        String as = string;
-                        messageTh sas = new messageTh(as, nickname);
-                        sas.start();
-                        //Incoming notifications' user name and the corresponding gui thread are stored
-                        notification_received.add(nickname);
-                        notification_received_mem.add(nick);
-                        notification_thread.add(sas);
-                        //For Debugging purpose
-                        nickname = nickname.substring(nickname.length() - 10, nickname.length());
-                        System.out.println(nickname + ": " + string);
+            if (notification_enabled) {
+                Boolean key_exist = false;
+                for (int i = 0; i < 100; i++) {
+                    if (keys[i] == key1) {
+                        key_exist = true;
+                        break;
+                    } else if (keys[i] == -1) {
+                        break;
                     }
-                } else {
-                    int ind = notification_received_mem.indexOf(nick);
-                    messageTh temp = notification_thread.get(ind);
-                    //The notification thread is stopped
-                    temp.stop_thread();
-
-                    // If the user rejects or receives the call from the mobile the notification's properties are removed from the list
-                    notification_received.remove(ind);
-                    notification_received_mem.remove(ind);
-                    notification_thread.remove(ind);
                 }
-            }
+                if (key_exist || key1 == 0 || key == key1) {
+                    if (!string.equals("call cancelled or received")) {
+                        System.out.println("Testing notification");
+                        if (!notification_received_mem.contains(nick)) {
+                            System.out.println("Testing notifiacation 1");
+                            final String f = string;
+                            MessageContext ctx = mBus.getMessageContext();
+                            String nickname = ctx.sender;
+                            String as = string;
+                            messageTh sas = new messageTh(as, nickname);
+                            sas.start();
+                            //Incoming notifications' user name and the corresponding gui thread are stored
+                            notification_received.add(nickname);
+                            notification_received_mem.add(nick);
+                            notification_thread.add(sas);
+                            //For Debugging purpose
+                            nickname = nickname.substring(nickname.length() - 10, nickname.length());
+                            System.out.println(nickname + ": " + string);
+                        }
+                    } else {
+                        int ind = notification_received_mem.indexOf(nick);
+                        messageTh temp = notification_thread.get(ind);
+                        //The notification thread is stopped
+                        temp.stop_thread();
 
+                        // If the user rejects or receives the call from the mobile the notification's properties are removed from the list
+                        notification_received.remove(ind);
+                        notification_received_mem.remove(ind);
+                        notification_thread.remove(ind);
+                    }
+                }
+
+            }
         }
 
         //This is signal handler responds to the nickname allocation request by clients. True if the nickname is unique and user is allocated that name and false otherwise  
         @BusSignalHandler(iface = "org.alljoyn.bus.samples.chat", signal = "nickname")
-        public void nickname(String usrname, String Alljoyn_unique_nameque,Boolean desk_or_mob) throws BusException {
+        public void nickname(String usrname, String Alljoyn_unique_nameque, Boolean desk_or_mob) throws BusException {
             System.out.println("!!!Validation Called!!!");
             SignalEmitter emitter = new SignalEmitter(mySignalInterface, Alljoyn_unique_nameque, mSessionId, SignalEmitter.GlobalBroadcast.Off);
             ChatInterface usrInterface = emitter.getInterface(ChatInterface.class);
@@ -266,11 +275,10 @@ public class Service {
                 nickname.add(usrname);
                 Alljoyn_unique_name.add(Alljoyn_unique_nameque);
                 usrInterface.validate(true);
-                if(desk_or_mob){
+                if (desk_or_mob) {
                     nickname_desk.add(usrname);
                     Alljoyn_unique_name_desk.add(Alljoyn_unique_nameque);
-                }
-                else{
+                } else {
                     nickname_mob.add(usrname);
                     Alljoyn_unique_name_mob.add(Alljoyn_unique_nameque);
                 }
@@ -330,26 +338,33 @@ public class Service {
         //This is used for estimating the delay of the network
         @BusSignalHandler(iface = "org.alljoyn.bus.samples.chat", signal = "delay_est")
         public void delay_est(long time_stamp, long time_stamp_pre) throws IOException, BusException, InterruptedException {
-            delay_count++;
-            System.out.println("it hererer");
-            long received = System.currentTimeMillis();
-            if (received - previous_time > delay) {
-                delay = received - previous_time;
-            }
-            if (delay_count >= 2) {
-                System.out.println("delay" + delay);
-                myInterface.clock_sync(2 * delay);
-                delay_count = 0;
-                asyncMusicPlay(2 * delay);
 
+            MessageContext ctx = mBus.getMessageContext();
+            String all_nickname = ctx.sender;
+            SignalEmitter emitter = new SignalEmitter(mySignalInterface, all_nickname, mSessionId, SignalEmitter.GlobalBroadcast.Off);
+            ChatInterface usrInterface = emitter.getInterface(ChatInterface.class);
+            long received = System.currentTimeMillis();
+            if (delay_est.contains(all_nickname)) {
+                if (delay_count == (Alljoyn_unique_name_desk.size() - 1)) {
+                    System.out.println("delay" + delay);
+                    myInterface.clock_sync(2 * delay);
+                    delay_count = 0;
+                    asyncMusicPlay(2 * delay);
+                }
             } else {
+                delay_est.add(all_nickname);
+                if (delay < (System.currentTimeMillis() - previous_time[delay_count])) {
+                    delay = System.currentTimeMillis() - previous_time[delay_count];
+                }
                 Thread.sleep(60);
                 System.out.println("pre gets updated");
-                myInterface.delay_est(System.currentTimeMillis(), received);
-                previous_time = System.currentTimeMillis();
+                usrInterface.delay_est(System.currentTimeMillis(), received);
+                previous_time[delay_count] = System.currentTimeMillis();
+                delay_count++;
             }
-        }
 
+            System.out.println("it hererer");
+        }
     }
 
     //The MethodHandler provides implemention for the GroupInterface which contains declarations for alljoyn methods
@@ -383,7 +398,7 @@ public class Service {
         }
 
         @Override
-        public String[] get_mob_uni() throws BusException {
+        public synchronized String[] get_mob_uni() throws BusException {
             String[] temp = new String[Alljoyn_unique_name_mob.size()];
             for (int i = 0; i < Alljoyn_unique_name_mob.size(); i++) {
                 temp[i] = Alljoyn_unique_name_mob.get(i);
@@ -392,7 +407,7 @@ public class Service {
         }
 
         @Override
-        public String[] get_mob_mem() throws BusException {
+        public synchronized String[] get_mob_mem() throws BusException {
             String[] temp = new String[nickname_mob.size()];
             for (int i = 0; i < nickname_mob.size(); i++) {
                 temp[i] = nickname_mob.get(i);
@@ -401,7 +416,7 @@ public class Service {
         }
 
         @Override
-        public String[] get_des_uni() throws BusException {
+        public synchronized String[] get_des_uni() throws BusException {
             String[] temp = new String[Alljoyn_unique_name_desk.size()];
             for (int i = 0; i < Alljoyn_unique_name_desk.size(); i++) {
                 temp[i] = Alljoyn_unique_name_desk.get(i);
@@ -410,7 +425,7 @@ public class Service {
         }
 
         @Override
-        public String[] get_des_mem() throws BusException {
+        public synchronized String[] get_des_mem() throws BusException {
             String[] temp = new String[nickname_desk.size()];
             for (int i = 0; i < nickname_desk.size(); i++) {
                 temp[i] = nickname_desk.get(i);
@@ -462,6 +477,7 @@ public class Service {
 
     //This method is called after the user has selected the music he/she wants to play and is ready to start playing the songs
     public static void play() throws FileNotFoundException, UnsupportedAudioFileException, IOException, BusException, InterruptedException {
+
         System.out.println("current time" + System.currentTimeMillis());
         music_duration = new long[filelist.size()];
         for (int j = 0; j < filelist.size(); j++) {
@@ -500,6 +516,9 @@ public class Service {
 
     //This initiates the sync process. It initializes all variables 
     public static void sync() throws UnsupportedAudioFileException, IOException, BusException, InterruptedException {
+        delay_est = new ArrayList<String>();
+        previous_time = new long[Alljoyn_unique_name_desk.size()];
+
         if (mp3player != null) {
             mp3player.stop();
         }
@@ -514,7 +533,9 @@ public class Service {
         }
         Thread.sleep(100);
         in = new FileInputStream(filelist.get(0));
-        previous_time = System.currentTimeMillis();
+        for (int i = 0; i < Alljoyn_unique_name_desk.size(); i++) {
+            previous_time[i] = System.currentTimeMillis();
+        }
 
         // a new data_transfer_handler is initialized
         data_transfer_handler = new data_transfer_thread(filelist, myInterface, music_duration);
@@ -587,11 +608,11 @@ public class Service {
     //This method ask other devices for their authorization key
     public static void ask_key() throws InterruptedException, BusException {
         ask_key_ind = -1;
-        String[] uni_names = new String[Alljoyn_unique_name_mob.size()];
-        final String[] nick = new String[nickname_mob.size()];
-        for (int i = 0; i < nickname_mob.size(); i++) {
-            uni_names[i] = Alljoyn_unique_name_mob.get(i);
-            nick[i] = nickname_mob.get(i);
+        String[] uni_names = new String[Alljoyn_unique_name.size()];
+        final String[] nick = new String[nickname.size()];
+        for (int i = 0; i < nickname.size(); i++) {
+            uni_names[i] = Alljoyn_unique_name.get(i);
+            nick[i] = nickname.get(i);
         }
         java.awt.EventQueue.invokeLater(new Runnable() {
             public void run() {
@@ -642,27 +663,26 @@ public class Service {
         myInterface = null;
         channels = new ArrayList<String>();
         channels.add("nan");
-        
+
         Alljoyn_unique_name = new ArrayList<String>();
-        Alljoyn_unique_name_mob=new ArrayList<String>();
-        Alljoyn_unique_name_desk=new ArrayList<String>();
-        
+        Alljoyn_unique_name_mob = new ArrayList<String>();
+        Alljoyn_unique_name_desk = new ArrayList<String>();
+
         nickname = new ArrayList<String>();
         nickname_mob = new ArrayList<String>();
         nickname_desk = new ArrayList<String>();
-        
+
         rand = new Random();
         //Initializing all the nicknames
         for (int i = 0; i < 100; i++) {
             keys[i] = -1;
         }
         channel_name = null;
-        notification_thread=new ArrayList<messageTh>();
-        notification_received=new ArrayList<String>();
-        notification_received_mem=new ArrayList<String>();
-      
-        //End of variable initialization
+        notification_thread = new ArrayList<messageTh>();
+        notification_received = new ArrayList<String>();
+        notification_received_mem = new ArrayList<String>();
 
+        //End of variable initialization
         //mBus is the object which connects to the Alljoyn bus daemon
         mBus = new BusAttachment("org.alljoyn.bus.samples", BusAttachment.RemoteMessage.Receive);
 
@@ -819,8 +839,8 @@ public class Service {
             //This is to run the service infinetly
             while (true && running) {
 
-                Thread.sleep(10000);
-                myInterface.Notify("service_message", nickname.get(0), 0);
+                Thread.sleep(20000);
+                //myInterface.Notify("service_message", nickname.get(0), 0);
             }
         } catch (InterruptedException ex) {
             System.out.println("Interrupted");

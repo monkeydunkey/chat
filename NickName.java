@@ -16,7 +16,6 @@ import java.util.logging.Logger;
 import javax.imageio.ImageIO;
 import org.alljoyn.bus.BusException;
 import org.alljoyn.bus.sample.chat.Client;
-import org.alljoyn.bus.sample.chat.Enter_nickname;
 
 /**
  *
@@ -142,13 +141,13 @@ static String[] nicks;
         try {
             nicks = Client.get_channel_nick();
         } catch (BusException ex) {
-            Logger.getLogger(Enter_nickname.class.getName()).log(Level.SEVERE, null, ex);
+            Logger.getLogger(NickName.class.getName()).log(Level.SEVERE, null, ex);
         }
     String nick_selected=jTextField1.getText();
     
     if(nick_selected.equals("")){
-        jLabel2.setText("Please Enter a nickname");
-        jLabel2.setEnabled(true);
+        jLabel3.setText("Please Enter a nickname");
+        jLabel3.setEnabled(true);
     }
     
     else{

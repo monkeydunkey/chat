@@ -3,7 +3,6 @@
  * To change this template file, choose Tools | Templates
  * and open the template in the editor.
  */
-
 package org.alljoyn.bus.sample.chat;
 
 import java.awt.Dimension;
@@ -21,7 +20,9 @@ public class Call_notifyGUI extends javax.swing.JFrame {
     /**
      * Creates new form Call_notify
      */
-    public Call_notifyGUI(String channel_name,String nickname,Boolean ready) {
+    Boolean set_enable;
+
+    public Call_notifyGUI(String channel_name, String nickname, Boolean ready, Boolean enabled) {
         BufferedImage bf1, bf2;
         try {
             bf1 = ImageIO.read(getClass().getResource("history.jpg"));
@@ -36,11 +37,12 @@ public class Call_notifyGUI extends javax.swing.JFrame {
         this.setLocation(dim.width / 2 - this.getSize().width / 2, dim.height / 2 - this.getSize().height / 2);
         setTitle("Call Notification");
         jLabel4.setVisible(false);
-        jLabel1.setText("                   Channel Name :   "+channel_name);
-        jLabel2.setText("                   Nickname :          "+nickname);
+        jLabel1.setText("                   Channel Name :   " + channel_name);
+        jLabel2.setText("                   Nickname :          " + nickname);
         jButton1.setEnabled(ready);
         jButton2.setEnabled(ready);
-        
+        set_enable = enabled;
+        jCheckBox1.setSelected(enabled);
     }
 
     /**
@@ -179,11 +181,21 @@ public class Call_notifyGUI extends javax.swing.JFrame {
     }//GEN-LAST:event_jButton2ActionPerformed
 
     private void jCheckBox1ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jCheckBox1ActionPerformed
-        // TODO add your handling code here:
+        MainGUI.set_enable_val(jCheckBox1.isSelected());
+        try {
+            Service.set_enabled(jCheckBox1.isSelected());
+        } catch (Exception e) {
+            try {
+                Client.set_enabled(jCheckBox1.isSelected());
+            } catch (Exception e1) {
+                  System.out.println("exception at call notification enable");
+            }
+
+        }
     }//GEN-LAST:event_jCheckBox1ActionPerformed
 
     private void jButton1MousePressed(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_jButton1MousePressed
-        
+
     }//GEN-LAST:event_jButton1MousePressed
 
     private void jButton1MouseExited(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_jButton1MouseExited
@@ -192,13 +204,13 @@ public class Call_notifyGUI extends javax.swing.JFrame {
     }//GEN-LAST:event_jButton1MouseExited
 
     private void jButton1MouseEntered(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_jButton1MouseEntered
-       jLabel4.setText("This shows the calls you have missed");
+        jLabel4.setText("This shows the calls you have missed");
         jLabel4.setVisible(true);
     }//GEN-LAST:event_jButton1MouseEntered
 
     private void jButton2MouseEntered(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_jButton2MouseEntered
         jLabel4.setText("This allows you to ask other devices for their key");
-        jLabel4.setVisible(true); 
+        jLabel4.setVisible(true);
     }//GEN-LAST:event_jButton2MouseEntered
 
     private void jButton2MouseExited(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_jButton2MouseExited
@@ -248,7 +260,7 @@ public class Call_notifyGUI extends javax.swing.JFrame {
         /* Create and display the form */
         java.awt.EventQueue.invokeLater(new Runnable() {
             public void run() {
-                new Call_notifyGUI("abc","abc",true).setVisible(true);
+                new Call_notifyGUI("abc", "abc", true, true).setVisible(true);
             }
         });
     }

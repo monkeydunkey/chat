@@ -13,7 +13,7 @@ import org.alljoyn.bus.BusException;
 
 /**
  *
- * @author Shashank
+ * @author K!LL3R
  */
 /**
  * The is the starting point of our application. It creates the main GUI. It

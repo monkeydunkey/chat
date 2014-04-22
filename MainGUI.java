@@ -28,6 +28,7 @@ public class MainGUI extends javax.swing.JFrame {
     private static Boolean Create_channel = true;
     private static Boolean join_channel = true;
     private static Boolean Disconnect = false;
+    private static Boolean is_enabled=true;
     //
     //Call notify variables
 
@@ -35,6 +36,7 @@ public class MainGUI extends javax.swing.JFrame {
     Chat_messageGUI chat_msg;
 
     public void original_state() {
+        is_enabled=true;
         channel_name = "Na";
         nickname = "Na";
         Create_channel = true;
@@ -43,6 +45,7 @@ public class MainGUI extends javax.swing.JFrame {
         jLabel4.setText("Na");
         jLabel6.setText("Na");
         chat_msg.set_nickname("Na");
+        
     }
 
     public void Set_channel_nick_name(String ch_name, String nick_name) {
@@ -58,6 +61,9 @@ public class MainGUI extends javax.swing.JFrame {
         Disconnect = dis;
     }
 
+    public static void set_enable_val(Boolean val){
+        is_enabled=val;
+    }
     public MainGUI() {
 
         BufferedImage bf1, bf2;
@@ -242,9 +248,8 @@ public class MainGUI extends javax.swing.JFrame {
                 .addComponent(jButton3, javax.swing.GroupLayout.PREFERRED_SIZE, 80, javax.swing.GroupLayout.PREFERRED_SIZE)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
                 .addComponent(jButton4, javax.swing.GroupLayout.PREFERRED_SIZE, 80, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addGap(18, 18, 18)
-                .addComponent(jLabel2, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                .addContainerGap())
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
+                .addComponent(jLabel2, javax.swing.GroupLayout.DEFAULT_SIZE, 38, Short.MAX_VALUE))
         );
 
         pack();
@@ -252,7 +257,7 @@ public class MainGUI extends javax.swing.JFrame {
 
     private void jButton1MouseEntered(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_jButton1MouseEntered
         // TODO add your handling code here:
-        jLabel2.setText("Channel Settings");
+        jLabel2.setText("Click here to Create channel / Join Channel Or Disconnect.");
         jLabel2.setVisible(true);
     }//GEN-LAST:event_jButton1MouseEntered
 
@@ -263,7 +268,8 @@ public class MainGUI extends javax.swing.JFrame {
 
     private void jButton2MouseEntered(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_jButton2MouseEntered
         // TODO add your handling code here:
-        jLabel2.setText("Call Notify");
+        jLabel2.setText("Click here to ask key,missed call log and enable notification");
+                
         jLabel2.setVisible(true);
     }//GEN-LAST:event_jButton2MouseEntered
 
@@ -274,7 +280,7 @@ public class MainGUI extends javax.swing.JFrame {
 
     private void jButton3MouseEntered(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_jButton3MouseEntered
         // TODO add your handling code here:
-        jLabel2.setText("Group Chat");
+        jLabel2.setText("Click here to enter Group Chat");
         jLabel2.setVisible(true);
     }//GEN-LAST:event_jButton3MouseEntered
 
@@ -285,7 +291,7 @@ public class MainGUI extends javax.swing.JFrame {
 
     private void jButton4MouseEntered(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_jButton4MouseEntered
         // TODO add your handling code here:
-        jLabel2.setText("Group Play");
+        jLabel2.setText("Click here to enter Group Play");
         jLabel2.setVisible(true);
     }//GEN-LAST:event_jButton4MouseEntered
 
@@ -305,7 +311,7 @@ public class MainGUI extends javax.swing.JFrame {
     private void jButton2ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton2ActionPerformed
         java.awt.EventQueue.invokeLater(new Runnable() {
             public void run() {
-                new Call_notifyGUI(channel_name, nickname, !Create_channel).setVisible(true);
+                new Call_notifyGUI(channel_name, nickname, !Create_channel,is_enabled).setVisible(true);
             }
         });
     }//GEN-LAST:event_jButton2ActionPerformed

@@ -70,7 +70,7 @@ public class PopUpNotification extends javax.swing.JFrame {
         final JFrame f = this;
         jLabel4.setText(caller_name);
         jLabel5.setText(caller_number);
-        t = new Timer(5000, new ActionListener() {
+        t = new Timer(30000, new ActionListener() {
 
             public void actionPerformed(ActionEvent ae) {
 
@@ -236,7 +236,7 @@ public class PopUpNotification extends javax.swing.JFrame {
     }//GEN-LAST:event_closeButtonActionPerformed
 
     private void rejectCallActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_rejectCallActionPerformed
-        if (service_client == 1) {
+        if (service_client == 2) {
             try {
                 Client.sendMessage("bomb", alljoyn_uni);
             } catch (BusException ex) {

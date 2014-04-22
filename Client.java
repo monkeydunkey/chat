@@ -17,12 +17,11 @@ package org.alljoyn.bus.sample.chat;
 
 /**
  *
- * @author Shashank
+ * @author K!LL3R
  */
 import java.io.ByteArrayInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
-import java.io.PrintWriter;
 import java.io.UnsupportedEncodingException;
 import java.util.ArrayList;
 import java.util.Random;
@@ -38,7 +37,6 @@ import org.alljoyn.bus.annotation.BusSignalHandler;
 import org.alljoyn.bus.MessageContext;
 import org.alljoyn.bus.SignalEmitter;
 
-import java.util.Scanner;
 import java.util.Timer;
 import java.util.TimerTask;
 import java.util.logging.Level;
@@ -104,8 +102,9 @@ public class Client implements Runnable {
     private static Boolean which_buffer = false;                        //This is used to select to which of the buffer the incoming data is to be written
     private static long curr_file_duration;                             //This stores the current music file duration
     private static int offset = 0;                                      //This is the offset from which the next incoming data is to be written on the seleceted buffer
-    private static Boolean connected = false;                           //This is used to specify whether the client is connected to a service or not                    
+    private static Boolean notification_enabled = true;                           //This is used to specify whether the client is connected to a service or not                    
 
+    
     private static ByteArrayInputStream in;
     private static Timer t1;
     private static final TimerTask music_player = null;
@@ -136,6 +135,10 @@ public class Client implements Runnable {
         notification_thread.remove(ind);
     }
 
+    public static void set_enabled(Boolean val){
+        System.out.println("set enabled "+val);
+        notification_enabled=val;
+    }
     //for group chat
     public static void send_msg(String message) {
         if (myInterface != null) {
@@ -225,7 +228,7 @@ public class Client implements Runnable {
         @BusSignalHandler(iface = "org.alljoyn.bus.samples.chat", signal = "Notify")
         public void Notify(String string, String nick, double key1) {
             
-            if (validate_copy) {
+            if (notification_enabled) {
                 System.out.println("here here");
                 Boolean key_exist = false;
                 for (int i = 0; i < 100; i++) {
@@ -238,7 +241,7 @@ public class Client implements Runnable {
                 }
                 System.out.println("notification is empty "+notification_received.isEmpty());
                 if (key_exist || key1 == 0 || key == key1) {
-                    if (!string.equals("call cancelled or received")) {
+                    if (!string.equals("bomb1")) {
                         if (!notification_received_mem.contains(nick)) {
                             final String f = string;
                             MessageContext ctx = mBus.getMessageContext();
@@ -461,22 +464,22 @@ public class Client implements Runnable {
         }
 
         @Override
-        public String[] get_mob_uni() throws BusException {
+        public synchronized String[] get_mob_uni() throws BusException {
             throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
         }
 
         @Override
-        public String[] get_mob_mem() throws BusException {
+        public synchronized String[] get_mob_mem() throws BusException {
             throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
         }
 
         @Override
-        public String[] get_des_uni() throws BusException {
+        public synchronized String[] get_des_uni() throws BusException {
             throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
         }
 
         @Override
-        public String[] get_des_mem() throws BusException {
+        public synchronized String[] get_des_mem() throws BusException {
             throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
         }
 
@@ -573,8 +576,8 @@ public class Client implements Runnable {
     //This method replies to other devices who have asked the device for their key
     public static void ask_key() throws BusException, InterruptedException {
         ask_key_ind = -1;
-        String[] uni_names = mGroupInterface.get_mob_uni();
-        final String[] nick = mGroupInterface.get_mob_mem();
+        String[] uni_names = mGroupInterface.getUni();
+        final String[] nick = mGroupInterface.getMem();
         System.out.println("it's called");
         java.awt.EventQueue.invokeLater(new Runnable() {
             public void run() {
@@ -783,8 +786,8 @@ public class Client implements Runnable {
             return;
         }
 
-        String[] uni_names = mGroupInterface.get_mob_uni();
-        String[] nick = mGroupInterface.get_mob_mem();
+        String[] uni_names = mGroupInterface.getUni();
+        String[] nick = mGroupInterface.getMem();
         for (int i = 0; i < nick.length; i++) {
             System.out.println(uni_names[i] + " - " + nick[i]);
         }

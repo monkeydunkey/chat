@@ -149,7 +149,7 @@ public class ChannelSettingsGUI extends javax.swing.JFrame {
 
     private void jButton1MouseEntered(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_jButton1MouseEntered
         // TODO add your handling code here:
-        jLabel1.setText("Create Channel");
+        jLabel1.setText("Click here to Create a new Channel");
         jLabel1.setVisible(true);
     }//GEN-LAST:event_jButton1MouseEntered
 
@@ -160,7 +160,7 @@ public class ChannelSettingsGUI extends javax.swing.JFrame {
 
     private void jButton2MouseEntered(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_jButton2MouseEntered
         // TODO add your handling code here:
-        jLabel1.setText("Join Channel");
+        jLabel1.setText("Click here to Join a Channel");
         jLabel1.setVisible(true);
     }//GEN-LAST:event_jButton2MouseEntered
 
@@ -171,7 +171,7 @@ public class ChannelSettingsGUI extends javax.swing.JFrame {
 
     private void jButton3MouseEntered(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_jButton3MouseEntered
         // TODO add your handling code here:
-        jLabel1.setText("Disconnect");
+        jLabel1.setText("Click here to leave channel or stop channel");
         jLabel1.setVisible(true);
     }//GEN-LAST:event_jButton3MouseEntered
 
@@ -195,6 +195,7 @@ public class ChannelSettingsGUI extends javax.swing.JFrame {
     private void jButton3ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton3ActionPerformed
         MainGUI.update_channel_setting(true, true, false);
         App.type(3);
+        this.dispose();
 
     }//GEN-LAST:event_jButton3ActionPerformed
 
